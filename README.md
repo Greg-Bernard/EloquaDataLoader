@@ -4,5 +4,7 @@ Export data from Oracle Eloqua's BULK API using the Python Eloqua API wrapper ma
 ## Basics: Using the script
 To use the script fill in your Eloqua login information in config file, then run the functions located in the ldbs file to perform the various syncs available.
 
+You can use the hourly_sync, or daily_sync functions to run any of the scripts in this file at the intervals you specify.
+
 ## Geolocation By IP
-Added functionality provided through the geoip file. Use the run_geoip or full_geoip functions in ldbs to roughly match the IP Addresses in activity tables that contain them with real-world coordinates. Accuracy of these coordinates vary from 5km to 50km, so only really useful for high level anaylsis. 
+Added functionality provided through the geoip file. Use the run_geoip or full_geoip functions in ldbs to roughly match the IP Addresses in activity tables that contain them with real-world coordinates. Accuracy of these coordinates vary from 5km to 50km, so only really useful for high level anaylsis/insights. 
