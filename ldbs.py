@@ -76,7 +76,8 @@ def sync_tables(tables, filename='ElqData.db'):
 def full_geoip(**kwargs):
     """
     Run geoip on all tables that contain the column IpAddress.
-    :param kwargs:
+    :param filename: file to sync to
+    :param tables_with_ip: list of tables containing IP Addresses to cycle through
     """
     tables_with_ip = kwargs.get('tables_with_ip', ["EmailClickthrough", "EmailOpen", "PageView", "WebVisit"])
     filename = kwargs.get('filename', 'ElqDB.db')
@@ -87,9 +88,10 @@ def full_geoip(**kwargs):
 
 def run_geoip(**kwargs):
     """
-    Runs the iplookup function that creates a table indexing all IP Address Geolocations
-    where at least the city was provided
-    :param kwargs:
+    Runs the IP lookup on specified tables that creates a table indexing all
+    IP Address Geolocations where at least the city was provided
+    :param filename: file to sync to
+    :param tablename: table to take IP Addresses from to geolocate
     """
     tablename = kwargs.get('tablename','EmailClickthrough')
     filename = kwargs.get('filename', 'ElqDB.db')
