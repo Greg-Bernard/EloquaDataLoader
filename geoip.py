@@ -1,3 +1,6 @@
+#!/usr/bin/python
+# IpLoc by Greg Bernard
+
 import sqlite3
 from geolite2 import geolite2
 
