@@ -1,2 +1,2 @@
 # EloquaDataLoader
-Load data from Oracle Eloqua to sync into a sqlite database or dump to .json files.
+Load data from Oracle Eloqua's BULK API using the Python Eloqua API wrapper made by Jeremiah Coleman (pyeloqua) then either sync it into an SQlite3 database or dump into JSON files.
