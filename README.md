@@ -15,3 +15,8 @@ You can use the hourly_sync, or daily_sync functions to run any of the scripts i
 
 ## Geolocation By IP
 Added functionality provided through the geoip file. Use the *run_geoip* or *full_geoip* functions in **ldbs** to roughly match the IP Addresses in activity tables that contain them with real-world coordinates. Accuracy of these coordinates vary from 5km to 50km, so only really useful for high level anaylsis/insights. 
+
+## Dependencies
+* [pyeloqua](https://pypi.python.org/pypi/pyeloqua/0.5.6)
+* [maxminddb-geolite2](https://pypi.python.org/pypi/maxminddb-geolite2)
+* [schedule](https://pypi.python.org/pypi/schedule)
