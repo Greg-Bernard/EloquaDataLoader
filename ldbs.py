@@ -154,8 +154,15 @@ def main():
     Main function runs when file is run as main.
     """
 
+    # Performs full database sync, only updating records modified since the last sync
     sync_database(filename="EloquaDB.db")
+
+    # Iterates through all tables with IP addresses and logs the IP with
+    # its geolocation in the GeoIP table
     full_geoip(filename="EloquaDB.db")
+    
+    # Exports GeoIP table inner joined with tables that contain activities
+    # with IP addresses in csv format
     geoip.export_geoip(filename="EloquaDB.db")
 
 # When using
