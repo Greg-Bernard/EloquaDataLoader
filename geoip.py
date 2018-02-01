@@ -20,6 +20,7 @@ class IpLoc:
 
         self.geo_data = []
         self.new_data = []
+        self.reader = maxminddb.open_database('GeoLite2-City.mmdb')
 
         c = self.db.cursor()
 
@@ -34,11 +35,11 @@ class IpLoc:
         """
         Get available location information for provided IP Addresses in SQlite Row format
         """
-        reader = maxminddb.open_database('GeoLite2-City.mmdb')
+
         print("Retrieving IP locations from the GeoLite2 data set.")
         for ip in self.raw_ip_data:
             try:
-                d = reader.get(ip["IpAddress"])
+                d = self.reader.get(ip["IpAddress"])
                 d['IpAddress'] = ip["IpAddress"]
                 self.geo_data.append(d)
             except ValueError:
@@ -144,7 +145,7 @@ class IpLoc:
         """
         self.db.commit()
         self.db.close()
-        geolite2.close()
+        self.reader.close()
         print("Data has been committed.")
 
 
