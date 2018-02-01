@@ -13,6 +13,25 @@ You can use the hourly_sync, or daily_sync functions to run any of the scripts i
 * **ldbs** - This is the file you'll be running most of the time, it has functions that facilitate the majority of syncing actions available through this script
 * **geoip** - An additional file that holds another class that uses the maxminddb package with the GeoLite2 database to geolocate IP addresses located in the activity tables exported with ElqDB
 
+### Usage:
+
+After setting up the config file, open the ldbs file and place the functions you want to run in the main function at the bottom.
+You can set up any kind of sync you'd like in this file, as well as run most functions from any file in this program.
+
+```python
+     def main():
+    
+       # syncs the entire activity, contact, and account content of your
+       # Eloqua instance to the database file specified
+       sync_database(filename="EloquaDB.db")
+       
+       # geolocates every IP with at lest enough resolution to determine city
+       full_geoip(filename="EloquaDB.db")
+       
+       # exports all activities with IP addresses and their geolocations
+       geoip.export_geoip(filename="EloquaDB.db") 
+ ```
+
 ## Geolocation By IP
 Added functionality provided through the geoip file. Use the *run_geoip* or *full_geoip* functions in **ldbs** to roughly match the IP Addresses in activity tables that contain them with real-world coordinates. Accuracy of these coordinates vary from 5km to 50km, so only really useful for high level anaylsis/insights. 
 
