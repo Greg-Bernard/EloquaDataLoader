@@ -35,7 +35,7 @@ class IpLoc:
         Get available location information for provided IP Addresses in SQlite Row format
         """
         reader = geolite2.reader()
-
+        print("Retrieving IP locations from the GeoLite2 data set.")
         for ip in self.raw_ip_data:
             try:
                 d = reader.get(ip["IpAddress"])
@@ -53,6 +53,7 @@ class IpLoc:
         """
         Steps to process the raw data output from ip_data and make it suitable for analysis
         """
+        print("Processing GeoLite2 export data for the database.")
 
         for dictionary in self.geo_data:
             foo_dict = {}
@@ -71,7 +72,10 @@ class IpLoc:
                     foo_dict.update({k: v['names']['en']})
             self.new_data.append(foo_dict)
 
-        print(self.new_data[0])
+        print("-"*50)
+        print("Last record:")
+        print(self.new_data[-1])
+        print("-"*50)
         return self.new_data
 
     def create_table(self):
@@ -96,7 +100,7 @@ class IpLoc:
 
         col = ', '.join("'{}' {}".format(key, val) for key, val in columns.items())
 
-        print(col)
+        print("Creating GeoIP a table if one doesn't exist yet.")
 
         self.db.execute('''CREATE TABLE IF NOT EXISTS GeoIP
                         ({})'''.format(col))
@@ -105,7 +109,6 @@ class IpLoc:
         """
         Save location data to local database
         """
-        print("-" * 50)
         print('Processing data for SQL database...')
 
         try:
@@ -157,7 +160,7 @@ def export_geoip(**kwargs):
     db = sqlite3.connect(filename, detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
 
     for table in tables:
-
+        print("Exporting {} georeferenced activity records from {}.".format(table, filename))
         c = db.cursor()
         sql_data = c.execute("""SELECT * FROM {} INNER JOIN GeoIP ON GeoIP.IpAddress = {}.IpAddress"""
                              .format(table, table))
@@ -165,8 +168,8 @@ def export_geoip(**kwargs):
         csv_data = sql_data.fetchall()
 
         print("-"*50)
-        print("First record:")
-        print(csv_data[0])
+        print("Last record:")
+        print(csv_data[-1])
         print("-"*50)
         print("Exporting {} GeoIP data to CSV.".format(table))
 
