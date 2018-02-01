@@ -3,6 +3,7 @@
 
 import sqlite3
 from geolite2 import geolite2
+import csv
 
 tables_with_ip = ["EmailClickthrough", "EmailOpen", "PageView", "WebVisit"]
 
@@ -144,11 +145,49 @@ class IpLoc:
         print("Data has been committed.")
 
 
+def export_geoip(**kwargs):
+    """
+    Exports all tables from the SQL database, use after full IpLoc process has complete
+    :param tables: List of tables to pull IP addresses from
+    :param filename: File to check for tables with IP addresses
+    """
+    tables = kwargs.get('tables', tables_with_ip)
+    filename = kwargs.get('filename', 'EloquaDB.db')
+
+    db = sqlite3.connect(filename, detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
+
+    for table in tables:
+
+        c = db.cursor()
+        sql_data = c.execute("""SELECT * FROM {} INNER JOIN GeoIP ON GeoIP.IpAddress = {}.IpAddress"""
+                             .format(table, table))
+        column_names = [description[0] for description in sql_data.description]
+        csv_data = sql_data.fetchall()
+
+        print("-"*50)
+        print("First record:")
+        print(csv_data[0])
+        print("-"*50)
+        print("Exporting {} GeoIP data to CSV.".format(table))
+
+        with open('{} GeoIP.csv'.format(table), 'w', newline='', encoding='utf-8') as csvfile:
+            writer = csv.writer(csvfile, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+            writer.writerow(column_names)
+            for d in csv_data:
+                writer.writerow(d)
+
+        print('Finished exporting {}.'.format(table))
+
+    db.close()
+
+
 def main():
     """
     Main function runs when file is run as main.
     """
 
+    # Iterates through all tables with IP addresses and logs the IP with
+    # its geolocation in the GeoIP table
     for tb in tables_with_ip:
 
         db = IpLoc(tablename=tb)
@@ -157,6 +196,10 @@ def main():
         db.create_table()
         db.save_location_data()
         db.commit_and_close()
+
+    # Exports GeoIP table inner joined with tables that contain activities
+    # with IP addresses in csv format
+    export_geoip()
 
 
 # if this module is run as main it will execute the main routine
