@@ -21,3 +21,5 @@ Added functionality provided through the geoip file. Use the *run_geoip* or *ful
 * [maxminddb](https://pypi.python.org/pypi/maxminddb)
 * [schedule](https://pypi.python.org/pypi/schedule)
 * [maxminddb GeoLite2 Database File](https://dev.maxmind.com/geoip/geoip2/geolite2/)
+
+*Download the GeoLite2 City MaxMind DB binary, gzipped file, then unpack it in the same directory as your .py files.*
