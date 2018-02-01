@@ -14,13 +14,14 @@ class IpLoc:
 
         self.tablename = kwargs.get("tablename", "EmailClickthrough")
         self.filename = kwargs.get("filename", 'EloquaDB.db')
+        self.database = kwargs.get("database", 'GeoLite2-City.mmdb')
 
         self.db = sqlite3.connect(self.filename, detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
         self.db.row_factory = sqlite3.Row
 
         self.geo_data = []
         self.new_data = []
-        self.reader = maxminddb.open_database('GeoLite2-City.mmdb')
+        self.reader = maxminddb.open_database(self.database)
 
         c = self.db.cursor()
 
