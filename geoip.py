@@ -2,7 +2,7 @@
 # IpLoc by Greg Bernard
 
 import sqlite3
-from geolite2 import geolite2
+import maxminddb
 import csv
 
 tables_with_ip = ["EmailClickthrough", "EmailOpen", "PageView", "WebVisit"]
@@ -34,7 +34,7 @@ class IpLoc:
         """
         Get available location information for provided IP Addresses in SQlite Row format
         """
-        reader = geolite2.reader()
+        reader = maxminddb.open_database('GeoLite2-City.mmdb')
         print("Retrieving IP locations from the GeoLite2 data set.")
         for ip in self.raw_ip_data:
             try:
