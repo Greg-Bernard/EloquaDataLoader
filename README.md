@@ -9,7 +9,7 @@ You can use the hourly_sync, or daily_sync functions to run any of the scripts i
 ### File Breakdown:
 * **ElqDB** - The core file that holds the ElqDB class which performs the Exports, syncs to your SQLite database, and dumps to JSON
 * **TableNames** - The list of tables currently available for export through BULK API in Eloqua
-* **confi** - Company, username, and password used to log in to allow ElqDB to function, requires a user with Advanced Marketing User privileges or higher
+* **config** - Company, username, and password used to log in to allow ElqDB to function, requires a user with Advanced Marketing User privileges or higher
 * **ldbs** - This is the file you'll be running most of the time, it has functions that facilitate the majority of syncing actions available through this script
 * **geoip** - An additional file that holds another class that uses the maxminddb package with the GeoLite2 database to geolocate IP addresses located in the activity tables exported with ElqDB
 
