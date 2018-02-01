@@ -5,7 +5,7 @@ import schedule
 import time
 from ElqDB import ElqDB
 import TableNames
-from geoip import IpLoc
+import geoip
 
 
 def initialise_database(filename='ElqData.db'):
@@ -96,7 +96,7 @@ def run_geoip(**kwargs):
     tablename = kwargs.get('tablename','EmailClickthrough')
     filename = kwargs.get('filename', 'ElqDB.db')
 
-    db = IpLoc(filename=filename,tablename=tablename)
+    db = geoip.IpLoc(filename=filename,tablename=tablename)
     db.ip_data()
     db.process_step()
     db.create_table()
@@ -155,11 +155,13 @@ def main():
     """
 
     sync_database(filename="EloquaDB.db")
-
+    full_geoip(filename="EloquaDB.db")
+    geoip.export_geoip(filename="EloquaDB.db")
 
 # When using
 # To clear all functions
 # schedule.clear()
+
 
 # if this module is run as main it will execute the main routine
 if __name__ == "__main__":
