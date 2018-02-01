@@ -15,7 +15,7 @@ You can use the hourly_sync, or daily_sync functions to run any of the scripts i
 
 ### Usage:
 
-After setting up the config file, open the ldbs file and place the functions you want to run in the main function at the bottom.
+After setting up the config file, open the **ldbs** file and place the functions you want to run in the main function at the bottom.
 You can set up any kind of sync you'd like in this file, as well as run most functions from any file in this program.
 
 ```python
