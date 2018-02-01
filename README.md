@@ -18,5 +18,5 @@ Added functionality provided through the geoip file. Use the *run_geoip* or *ful
 
 ## Dependencies
 * [pyeloqua](https://pypi.python.org/pypi/pyeloqua/0.5.6)
-* [maxminddb-geolite2](https://pypi.python.org/pypi/maxminddb-geolite2)
+* [maxminddb](https://pypi.python.org/pypi/maxminddb)
 * [schedule](https://pypi.python.org/pypi/schedule)
