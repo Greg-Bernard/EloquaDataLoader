@@ -164,7 +164,7 @@ def export_geoip(**kwargs):
     for table in tables:
         print("Exporting {} georeferenced activity records from {}.".format(table, filename))
         c = db.cursor()
-        sql_data = c.execute("""SELECT * FROM ? INNER JOIN GeoIP ON GeoIP.IpAddress = ?.IpAddress"""
+        sql_data = c.execute("""SELECT * FROM {} INNER JOIN GeoIP ON GeoIP.IpAddress = {}.IpAddress"""
                              .format(table, table))
         column_names = [description[0] for description in sql_data.description]
         csv_data = sql_data.fetchall()
