@@ -360,7 +360,7 @@ def main():
 
     tb = ElqDB(filename='fest.db', table='EmailClickthrough')
     tb.create_table()
-    #tb.get_initial_data()
+    # tb.get_initial_data() # Use this if you need to replace all of the data in your tables
     tb.get_sync_data()
     tb.load_to_database()
     tb.commit()
