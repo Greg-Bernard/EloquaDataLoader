@@ -23,13 +23,13 @@ You can set up any kind of sync you'd like in this module, as well as run most f
     
        # syncs the entire activity, contact, and account content of your
        # Eloqua instance to the database file specified
-       sync_database(filename="EloquaDB.db")
+       sync_database(filename='EloquaDB.db')
        
        # geolocates every IP with at lest enough resolution to determine city
-       full_geoip(filename="EloquaDB.db")
+       full_geoip(filename='EloquaDB.db')
        
        # exports all activities with IP addresses and their geolocations
-       geoip.export_geoip(filename="EloquaDB.db") 
+       geoip.export_geoip(filename='EloquaDB.db') 
  ```
 
 ## Geolocation By IP
