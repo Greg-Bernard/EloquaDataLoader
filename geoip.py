@@ -5,7 +5,7 @@ import sqlite3
 import maxminddb
 import csv
 
-tables_with_ip = ['EmailClickthrough', ''"EmailOpen', 'PageView'", 'WebVisit']
+tables_with_ip = ['EmailClickthrough', 'EmailOpen', 'PageView', 'WebVisit']
 
 
 class IpLoc:
