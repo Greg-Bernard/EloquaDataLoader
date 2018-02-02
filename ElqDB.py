@@ -366,9 +366,6 @@ def main():
     tb.commit()
     tb.close()
 
-    # verify the db is empty
-    # if dict(tb) != {}:
-    #     print('Error in ElqDB test(): Database is not empty')
 
 # if this module is run as main it will execute the main routine
 
