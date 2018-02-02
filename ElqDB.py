@@ -154,8 +154,8 @@ class ElqDB:
         elif self.table != ('contacts' or 'accounts') and 'EmailAddress' in self.columns.keys():
             col = col + ", FOREIGN KEY(EmailAddress) REFERENCES contacts('Email Address')"
 
-        self.db.execute('''CREATE TABLE IF NOT EXISTS {}
-                            ({})'''.format(self.table, col))
+        self.db.execute('''CREATE TABLE IF NOT EXISTS ?
+                            ({})''', (self.table, col))
 
     def get_initial_data(self):
         """
@@ -197,7 +197,6 @@ class ElqDB:
         _count = self.bulk.get_export_count()
         print("\n" + '#' * 50 + "\n")
         print("Count of {} records in Eloqua: {}".format(self.table, _count))
-
         print("Finished loading {} activity data.".format(self.table))
 
         return self.data
@@ -239,7 +238,7 @@ class ElqDB:
 
             try:
                 c.execute(
-                    'SELECT {} AS "{} [timestamp]" FROM {} ORDER BY {} DESC LIMIT 1;'.format(
+                    """SELECT {} AS "{} [timestamp]" FROM {} ORDER BY {} DESC LIMIT 1;""".format(
                         date_field, date_field, self.table, date_field))
             except sqlite3.OperationalError:
                 print("ERROR: You must create a table before you can sync to it.\nTry create_table().")
@@ -261,7 +260,7 @@ class ElqDB:
 
         # Add filter to selected date column by last date in system
 
-        # END FIELD DEFINITION
+        # END FIELD DEFINITION - SEND TO ELOQUA
 
         print("Sending Export definition to Eloqua...")
         self.bulk.create_def('Bulk Export - {}'.format(self.table))  # send export definition to Eloqua
@@ -281,7 +280,10 @@ class ElqDB:
 
         _count = self.bulk.get_export_count()
         print("\n" + '#' * 50 + "\n")
-        print("Count of new {} records in Eloqua: {}".format(self.table, _count))
+        if self.table == "accounts" or "contacts":
+            print("Count of new or updated {} records in Eloqua: {}".format(self.table, _count))
+        else:
+            print("Count of new {} records in Eloqua: {}".format(self.table, _count))
 
         return self.data
 
@@ -293,8 +295,8 @@ class ElqDB:
             with open('bulk_export_{}.json'.format(self.table), 'w') as fopen:
                 dump(self.data, fopen, indent=3)
         except AttributeError:
-            print('ERROR: You must use get_initial_data() or get_sync_data() '
-                  'to grab data from Eloqua before dumping to a file.')
+            print("ERROR: You must use get_initial_data() or get_sync_data() "
+                  "to grab data from Eloqua before dumping to a file.")
             exit()
 
     def load_to_database(self):
@@ -303,7 +305,7 @@ class ElqDB:
         """
 
         print("-"*50)
-        print('Processing data for SQL database...')
+        print("Processing data for SQL database...")
 
         try:
             col = list(self.data[0].keys())
@@ -321,13 +323,13 @@ class ElqDB:
                 self.db.executemany("""INSERT OR REPLACE INTO {} VALUES ({})""".format(
                     self.table, ",".join("?" * col_count)), sql_data)
             except AttributeError:
-                print('ERROR: You must create a table before loading to it. Try initiate_table().')
+                print("ERROR: You must create a table before loading to it. Try initiate_table().")
 
             print("Table has been populated, commit() to finalize operation.")
 
         except (AttributeError, TypeError):
-            print('ERROR: You must use get_initial_data() or get_sync_data() '
-                  'to grab data from Eloqua before writing to a database.')
+            print("ERROR: You must use get_initial_data() or get_sync_data() "
+                  "to grab data from Eloqua before writing to a database.")
             exit()
 
     def commit(self):
@@ -341,14 +343,14 @@ class ElqDB:
         """
         Clears out the database by dropping the current table
         """
-        self.db.execute('DROP TABLE IF EXISTS {}'.format(self.table))
+        self.db.execute("DROP TABLE IF EXISTS {}".format(self.table))
 
     def close(self):
         """
         Safely close down the database
         """
         self.db.close()
-        print('Database has been safely closed.')
+        print("Database has been safely closed.")
 
 
 def main():
@@ -368,7 +370,5 @@ def main():
 
 
 # if this module is run as main it will execute the main routine
-
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
