@@ -154,8 +154,8 @@ class ElqDB:
         elif self.table != ('contacts' or 'accounts') and 'EmailAddress' in self.columns.keys():
             col = col + ", FOREIGN KEY(EmailAddress) REFERENCES contacts('Email Address')"
 
-        self.db.execute('''CREATE TABLE IF NOT EXISTS ?
-                            ({})''', (self.table, col))
+        self.db.execute('''CREATE TABLE IF NOT EXISTS {}
+                            ({})'''.format(self.table, col))
 
     def get_initial_data(self):
         """
