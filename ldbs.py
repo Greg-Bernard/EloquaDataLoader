@@ -66,7 +66,7 @@ def sync_tables(tables, filename='ElqData.db'):
     """
 
     if set(tables).issubset(TableNames.tables) is False:
-        print('The inputs must be within the accepted list of Eloqua tables.')
+        print("The inputs must be within the accepted list of Eloqua tables.")
         exit()
 
     for item in tables:
@@ -79,7 +79,7 @@ def full_geoip(**kwargs):
     :param filename: file to sync to
     :param tables_with_ip: list of tables containing IP Addresses to cycle through
     """
-    tables_with_ip = kwargs.get('tables_with_ip', ["EmailClickthrough", "EmailOpen", "PageView", "WebVisit"])
+    tables_with_ip = kwargs.get('tables_with_ip', ['EmailClickthrough', 'EmailOpen', 'PageView', 'WebVisit'])
     filename = kwargs.get('filename', 'ElqDB.db')
 
     for tb in tables_with_ip:
@@ -115,7 +115,7 @@ def daily_sync(**kwargs):
     filename = kwargs.get('filename', 'ElqDB.db')
     sync = kwargs.get('sync', sync_database(filename=filename))
 
-    print('Scheduling a daily Eloqua sync at {}.'.format(daytime))
+    print("Scheduling a daily Eloqua sync at {}.".format(daytime))
     schedule.every().day.at(daytime).do(sync)
 
     while True:
@@ -134,7 +134,7 @@ def hourly_sync(**kwargs):
     filename = kwargs.get('filename', 'ElqDB.db')
     sync = kwargs.get('sync', sync_database(filename=filename))
 
-    print('Scheduling an Eloqua sync every {} hours.'.format(hours))
+    print("Scheduling an Eloqua sync every {} hours.".format(hours))
     schedule.every(hours).hours.do(sync)
 
     while True:
@@ -155,15 +155,15 @@ def main():
     """
 
     # Performs full database sync, only updating records modified since the last sync
-    sync_database(filename="EloquaDB.db")
+    sync_database(filename='EloquaDB.db')
 
     # Iterates through all tables with IP addresses and logs the IP with
     # its geolocation in the GeoIP table
-    full_geoip(filename="EloquaDB.db")
-    
+    full_geoip(filename='EloquaDB.db')
+
     # Exports GeoIP table inner joined with tables that contain activities
     # with IP addresses in csv format
-    geoip.export_geoip(filename="EloquaDB.db")
+    geoip.export_geoip(filename='EloquaDB.db')
 
 # When using
 # To clear all functions
@@ -171,5 +171,5 @@ def main():
 
 
 # if this module is run as main it will execute the main routine
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
