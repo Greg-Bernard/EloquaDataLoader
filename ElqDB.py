@@ -280,7 +280,7 @@ class ElqDB:
 
         _count = self.bulk.get_export_count()
         print("\n" + '#' * 50 + "\n")
-        if self.table == "accounts" or "contacts":
+        if self.table == 'accounts' or self.table == 'contacts':
             print("Count of new or updated {} records in Eloqua: {}".format(self.table, _count))
         else:
             print("Count of new {} records in Eloqua: {}".format(self.table, _count))
