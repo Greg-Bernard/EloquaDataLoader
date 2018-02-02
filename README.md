@@ -28,7 +28,7 @@ You can set up any kind of sync you'd like in this module, as well as run most f
        # geolocates every IP with at lest enough resolution to determine city
        full_geoip(filename='EloquaDB.db')
        
-       # exports all activities with IP addresses and their geolocations
+       # exports all activities with IP addresses and their geolocations to CSV files name after their tables
        geoip.export_geoip(filename='EloquaDB.db') 
  ```
 
