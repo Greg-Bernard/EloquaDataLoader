@@ -5,16 +5,16 @@ import sqlite3
 import maxminddb
 import csv
 
-tables_with_ip = ["EmailClickthrough", "EmailOpen", "PageView", "WebVisit"]
+tables_with_ip = ['EmailClickthrough', ''"EmailOpen', 'PageView'", 'WebVisit']
 
 
 class IpLoc:
 
     def __init__(self, **kwargs):
 
-        self.tablename = kwargs.get("tablename", "EmailClickthrough")
-        self.filename = kwargs.get("filename", 'EloquaDB.db')
-        self.database = kwargs.get("database", 'GeoLite2-City.mmdb')
+        self.tablename = kwargs.get('tablename', 'EmailClickthrough')
+        self.filename = kwargs.get('filename', 'EloquaDB.db')
+        self.database = kwargs.get('database', 'GeoLite2-City.mmdb')
 
         self.db = sqlite3.connect(self.filename, detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
         self.db.row_factory = sqlite3.Row
@@ -40,8 +40,8 @@ class IpLoc:
         print("Retrieving IP locations from the GeoLite2 data set.")
         for ip in self.raw_ip_data:
             try:
-                d = self.reader.get(ip["IpAddress"])
-                d['IpAddress'] = ip["IpAddress"]
+                d = self.reader.get(ip['IpAddress'])
+                d['IpAddress'] = ip['IpAddress']
                 self.geo_data.append(d)
             except ValueError:
                 continue
@@ -111,7 +111,7 @@ class IpLoc:
         """
         Save location data to local database
         """
-        print('Processing data for SQL database...')
+        print("Processing data for SQL database...")
 
         try:
             col = list(self.new_data[0].keys())
@@ -127,7 +127,7 @@ class IpLoc:
                 self.db.executemany("""INSERT OR REPLACE INTO GeoIP VALUES ({})""".format(
                     ", ".join("?" * col_count)), sql_data)
             except AttributeError:
-                print('ERROR: You must create columns in the table before loading to it. Try create_columns().')
+                print("ERROR: You must create columns in the table before loading to it. Try create_columns().")
             except sqlite3.OperationalError:
                 print("""ERROR: The database is locked by another program,
                 please commit and close before running this script.""")
@@ -136,8 +136,8 @@ class IpLoc:
             print("Table has been populated, commit to finalize operation.")
 
         except (AttributeError, TypeError):
-            print('ERROR: You must use get_initial_data() or get_sync_data() '
-                  'to grab data from Eloqua before writing to a database.')
+            print("ERROR: You must use get_initial_data() or get_sync_data() "
+                  "to grab data from Eloqua before writing to a database.")
             exit()
 
     def commit_and_close(self):
@@ -164,7 +164,7 @@ def export_geoip(**kwargs):
     for table in tables:
         print("Exporting {} georeferenced activity records from {}.".format(table, filename))
         c = db.cursor()
-        sql_data = c.execute("""SELECT * FROM {} INNER JOIN GeoIP ON GeoIP.IpAddress = {}.IpAddress"""
+        sql_data = c.execute("""SELECT * FROM ? INNER JOIN GeoIP ON GeoIP.IpAddress = ?.IpAddress"""
                              .format(table, table))
         column_names = [description[0] for description in sql_data.description]
         csv_data = sql_data.fetchall()
@@ -181,7 +181,7 @@ def export_geoip(**kwargs):
             for d in csv_data:
                 writer.writerow(d)
 
-        print('Finished exporting {}.'.format(table))
+        print("Finished exporting {}.".format(table))
 
     db.close()
 
@@ -208,5 +208,5 @@ def main():
 
 
 # if this module is run as main it will execute the main routine
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
