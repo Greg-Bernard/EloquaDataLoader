@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 """
-All exportable tables in Eloqua
+All BULK exportable tables in Eloqua
 DO NOT MODIFY
 """
 
