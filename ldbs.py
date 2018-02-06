@@ -8,7 +8,7 @@ import TableNames
 import geoip
 
 
-def initialise_database(filename='ElqData.db'):
+def initialise_database(filename='EloquaDB.db'):
     """
     Initialise entire database in one run
     """
@@ -33,7 +33,7 @@ def initialise_table(table, filename='ElqData.db'):
     tb.close()
 
 
-def sync_database(filename='ElqData.db'):
+def sync_database(filename='EloquaDB.db'):
     """
     Sync entire database in one run
     """
@@ -42,7 +42,7 @@ def sync_database(filename='ElqData.db'):
         sync_table(item, filename)
 
 
-def sync_table(table, filename='ElqData.db'):
+def sync_table(table, filename='EloquaDB.db'):
     """
     Sync only the data for a single table
     :param table: the name of the table you're syncing from Eloqua
@@ -58,7 +58,7 @@ def sync_table(table, filename='ElqData.db'):
     tb.close()
 
 
-def sync_tables(tables, filename='ElqData.db'):
+def sync_tables(tables, filename='EloquaDB.db'):
     """
     Initialize the data for 1 to many tables
     :param tables: the list of the tables you're syncing from Eloqua
@@ -80,10 +80,10 @@ def full_geoip(**kwargs):
     :param tables_with_ip: list of tables containing IP Addresses to cycle through
     """
     tables_with_ip = kwargs.get('tables_with_ip', ['EmailClickthrough', 'EmailOpen', 'PageView', 'WebVisit'])
-    filename = kwargs.get('filename', 'ElqDB.db')
+    filename = kwargs.get('filename', 'EloquaDB.db')
 
     for tb in tables_with_ip:
-        run_geoip(filename=filename,tablename=tb)
+        run_geoip(filename=filename, tablename=tb)
 
 
 def run_geoip(**kwargs):
@@ -94,9 +94,9 @@ def run_geoip(**kwargs):
     :param tablename: table to take IP Addresses from to geolocate
     """
     tablename = kwargs.get('tablename','EmailClickthrough')
-    filename = kwargs.get('filename', 'ElqDB.db')
+    filename = kwargs.get('filename', 'EloquaDB.db')
 
-    db = geoip.IpLoc(filename=filename,tablename=tablename)
+    db = geoip.IpLoc(filename=filename, tablename=tablename)
     db.ip_data()
     db.process_step()
     db.create_table()
@@ -112,7 +112,7 @@ def daily_sync(**kwargs):
     :param filename: file to sync to
     """
     daytime = kwargs.get('daytime', "00:00")
-    filename = kwargs.get('filename', 'ElqDB.db')
+    filename = kwargs.get('filename', 'EloquaDB.db')
     sync = kwargs.get('sync', sync_database(filename=filename))
 
     print("Scheduling a daily Eloqua sync at {}.".format(daytime))
@@ -131,7 +131,7 @@ def hourly_sync(**kwargs):
     :param filename: file to sync to
     """
     hours = kwargs.get('hours', 4)
-    filename = kwargs.get('filename', 'ElqDB.db')
+    filename = kwargs.get('filename', 'EloquaDB.db')
     sync = kwargs.get('sync', sync_database(filename=filename))
 
     print("Scheduling an Eloqua sync every {} hours.".format(hours))
@@ -165,7 +165,7 @@ def main():
     # with IP addresses in csv format
     geoip.export_geoip(filename='EloquaDB.db')
 
-# When using
+# When using schedulers
 # To clear all functions
 # schedule.clear()
 
