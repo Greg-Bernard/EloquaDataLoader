@@ -18,9 +18,9 @@ __version__ = '0.1.0'
 # filename = string
 # table = string (Must match the name of the activity that you wish to export)
 # It also accepts login credentials, in-case you don't want to set up a config file
-# company = Eloqua Company Name
-# username = Eloqua Username
-# password = Eloqua Password
+# company = string (Eloqua Company Name)
+# username = string (Eloqua Username)
+# password = string (Eloqua Password)
 
 
 class ElqDB:
