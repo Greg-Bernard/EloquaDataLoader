@@ -17,7 +17,10 @@ __version__ = '0.1.0'
 # ElqDB takes the inputs filename, table, and columns
 # filename = string
 # table = string (Must match the name of the activity that you wish to export)
-# columns = dictionary of column names and data types
+# It also accepts login credentials, in-case you don't want to set up a config file
+# company = Eloqua Company Name
+# username = Eloqua Username
+# password = Eloqua Password
 
 
 class ElqDB:
@@ -162,6 +165,7 @@ class ElqDB:
         PyEloqua initial data pull
         """
 
+        # -----------------------------------------------------------
         # CREATING DEFINITION FOR EXPORT FROM ELOQUA
 
         print("Loading list of available data...")
@@ -179,6 +183,7 @@ class ElqDB:
         self.bulk.add_fields(_col)
 
         # END FIELD DEFINITION
+        # -----------------------------------------------------------
 
         print("Sending Export definition to Eloqua...")
         self.bulk.create_def('Bulk Export - {}'.format(self.table))  # send export info to Eloqua
@@ -197,6 +202,7 @@ class ElqDB:
         _count = self.bulk.get_export_count()
         print("\n" + '#' * 50 + "\n")
         print("Count of {} records in Eloqua: {}".format(self.table, _count))
+
         print("Finished loading {} activity data.".format(self.table))
 
         return self.data
@@ -207,6 +213,7 @@ class ElqDB:
         Will always retrieve at least 1 record.
         """
 
+        # -----------------------------------------------------------
         # CREATING DEFINITION FOR EXPORT FROM ELOQUA
 
         print("Loading list of available data...")
@@ -238,7 +245,7 @@ class ElqDB:
 
             try:
                 c.execute(
-                    """SELECT {} AS "{} [timestamp]" FROM {} ORDER BY {} DESC LIMIT 1;""".format(
+                    'SELECT {} AS "{} [timestamp]" FROM {} ORDER BY {} DESC LIMIT 1;'.format(
                         date_field, date_field, self.table, date_field))
             except sqlite3.OperationalError:
                 print("ERROR: You must create a table before you can sync to it.\nTry create_table().")
@@ -260,7 +267,8 @@ class ElqDB:
 
         # Add filter to selected date column by last date in system
 
-        # END FIELD DEFINITION - SEND TO ELOQUA
+        # END FIELD DEFINITION
+        # -----------------------------------------------------------
 
         print("Sending Export definition to Eloqua...")
         self.bulk.create_def('Bulk Export - {}'.format(self.table))  # send export definition to Eloqua
@@ -280,10 +288,7 @@ class ElqDB:
 
         _count = self.bulk.get_export_count()
         print("\n" + '#' * 50 + "\n")
-        if self.table == 'accounts' or self.table == 'contacts':
-            print("Count of new or updated {} records in Eloqua: {}".format(self.table, _count))
-        else:
-            print("Count of new {} records in Eloqua: {}".format(self.table, _count))
+        print("Count of new {} records in Eloqua: {}".format(self.table, _count))
 
         return self.data
 
@@ -295,8 +300,8 @@ class ElqDB:
             with open('bulk_export_{}.json'.format(self.table), 'w') as fopen:
                 dump(self.data, fopen, indent=3)
         except AttributeError:
-            print("ERROR: You must use get_initial_data() or get_sync_data() "
-                  "to grab data from Eloqua before dumping to a file.")
+            print('ERROR: You must use get_initial_data() or get_sync_data() '
+                  'to grab data from Eloqua before dumping to a file.')
             exit()
 
     def load_to_database(self):
@@ -305,7 +310,7 @@ class ElqDB:
         """
 
         print("-"*50)
-        print("Processing data for SQL database...")
+        print('Processing data for SQL database...')
 
         try:
             col = list(self.data[0].keys())
@@ -323,13 +328,13 @@ class ElqDB:
                 self.db.executemany("""INSERT OR REPLACE INTO {} VALUES ({})""".format(
                     self.table, ",".join("?" * col_count)), sql_data)
             except AttributeError:
-                print("ERROR: You must create a table before loading to it. Try initiate_table().")
+                print('ERROR: You must create a table before loading to it. Try initiate_table().')
 
             print("Table has been populated, commit() to finalize operation.")
 
         except (AttributeError, TypeError):
-            print("ERROR: You must use get_initial_data() or get_sync_data() "
-                  "to grab data from Eloqua before writing to a database.")
+            print('ERROR: You must use get_initial_data() or get_sync_data() '
+                  'to grab data from Eloqua before writing to a database.')
             exit()
 
     def commit(self):
@@ -343,14 +348,14 @@ class ElqDB:
         """
         Clears out the database by dropping the current table
         """
-        self.db.execute("DROP TABLE IF EXISTS {}".format(self.table))
+        self.db.execute('DROP TABLE IF EXISTS {}'.format(self.table))
 
     def close(self):
         """
         Safely close down the database
         """
         self.db.close()
-        print("Database has been safely closed.")
+        print('Database has been safely closed.')
 
 
 def main():
@@ -362,13 +367,13 @@ def main():
 
     tb = ElqDB(filename='fest.db', table='EmailClickthrough')
     tb.create_table()
-    # tb.get_initial_data() # Use this if you need to replace all of the data in your tables
+    #tb.get_initial_data()
     tb.get_sync_data()
     tb.load_to_database()
     tb.commit()
     tb.close()
 
-
+    
 # if this module is run as main it will execute the main routine
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
