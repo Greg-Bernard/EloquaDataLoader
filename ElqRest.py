@@ -88,7 +88,7 @@ class ElqRest(object):
             if self.get(i) is not None:
                 activities.append(self.get(i))
             else:
-                print("No more activity data.")
+                print("No more activity data, last record exported: {}.".format(i-1))
                 break
 
         return activities
