@@ -4,6 +4,7 @@
 import schedule
 import time
 from ElqBulk import ElqBulk
+from ElqRest import ElqRest
 import TableNames
 import geoip
 
@@ -71,6 +72,18 @@ def sync_tables(tables, filename='EloquaDB.db'):
 
     for item in tables:
         sync_table(item, filename)
+
+
+def sync_external_activities(filename='EloquaDB.db', start=None, end=99999):
+    """
+    Syncs external activities to the database
+    :param filename: the name of the file you're dumping the data into
+    :param start: number of the record you wish to start you pull from, defaults to last record created
+    :param end: number of the last record you wish to pull, non-inclusive
+    """
+
+    db = ElqRest(filename=filename)
+    db.populate_table(start=start, end=end)
 
 
 def full_geoip(**kwargs):
@@ -156,6 +169,9 @@ def main():
 
     # Performs full database sync, only updating records modified since the last sync
     sync_database(filename='EloquaDB.db')
+
+    # Performs full database sync, only updating records modified since the last sync
+    sync_external_activities(filename='EloquaDB.db')
 
     # Iterates through all tables with IP addresses and logs the IP with
     # its geolocation in the GeoIP table
