@@ -21,16 +21,23 @@ You can set up any kind of sync you'd like in this module, as well as run most f
 
 ```python
      def main():
-    
-       # syncs the entire activity, contact, and account content of your
-       # Eloqua instance to the database file specified
-       sync_database(filename='EloquaDB.db')
-       
-       # geolocates every IP with at lest enough resolution to determine city
-       full_geoip(filename='EloquaDB.db')
-       
-       # exports all activities with IP addresses and their geolocations to CSV files name after their tables
-       geoip.export_geoip(filename='EloquaDB.db') 
+         """
+         Main function runs when file is run as main.
+         """
+
+         # Performs full database sync, only updating records modified since the last sync
+         sync_database(filename='EloquaDB.db')
+
+         # Performs full database sync, only updating records modified since the last sync
+         sync_external_activities(filename='EloquaDB.db')
+
+         # Iterates through all tables with IP addresses and logs the IP with
+         # its geolocation in the GeoIP table
+         full_geoip(filename='EloquaDB.db')
+
+         # Exports GeoIP table inner joined with tables that contain activities
+         # with IP addresses in csv format
+         geoip.export_geoip(filename='EloquaDB.db')
  ```
 
 ## Geolocation By IP
