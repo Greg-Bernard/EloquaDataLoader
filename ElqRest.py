@@ -2,6 +2,7 @@ import datetime
 import requests
 import config
 import sqlite3
+import time
 
 
 """
@@ -161,8 +162,20 @@ class ElqRest(object):
                 int(d['activityDate'])).strftime('%Y-%m-%d %H:%M:%S')
             sql_data.append(list(d.values()))
 
-        c.executemany("""INSERT OR REPLACE INTO {} VALUES ({})""".format(
-            table, ",".join("?" * col_count)), sql_data)
+        def insert_data():
+            """
+            Local function that allows a wait period if database file is busy, then retries
+            """
+            try:
+                c.executemany("""INSERT OR REPLACE INTO {} VALUES ({})""".format(
+                    table, ",".join("?" * col_count)), sql_data)
+            except sqlite3.OperationalError:
+                print("Another application is currently using the database,"
+                      " waiting 1 minute then attempting to continue.")
+                time.sleep(60)
+                insert_data()
+
+        insert_data()
 
         db.commit()
         db.close()

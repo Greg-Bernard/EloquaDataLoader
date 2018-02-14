@@ -8,6 +8,7 @@ from json import dump
 from pyeloqua import Bulk, Eloqua
 import config
 import TableNames
+import time
 
 __version__ = '0.1.0'
 
@@ -32,7 +33,7 @@ class ElqBulk(object):
     def __init__(self, **kwargs):
 
         # By default ElqBulk will be set up to pull contacts when initialised.
-        self.filename = kwargs.get('filename', 'ElqData.db')
+        self.filename = kwargs.get('filename', 'EloquaDB.db')
         self.table = kwargs.get('table', 'contacts')
         self.company = kwargs.get('company', config.company)
         self.username = kwargs.get('username', config.username)
@@ -335,12 +336,24 @@ class ElqBulk(object):
             for d in self.data:
                 sql_data.append(list(d.values()))
 
-            # Initialize database connection
-            try:
-                self.db.executemany("""INSERT OR REPLACE INTO {} VALUES ({})""".format(
-                    self.table, ",".join("?" * col_count)), sql_data)
-            except AttributeError:
-                print('ERROR: You must create a table before loading to it. Try initiate_table().')
+            # Initialize database connection, if database is locked, waits 1 minute, then retries
+
+            def insert_data():
+                """
+                Local function that allows a wait period if database file is busy, then retries
+                """
+                try:
+                    self.db.executemany("""INSERT OR REPLACE INTO {} VALUES ({})""".format(
+                        self.table, ",".join("?" * col_count)), sql_data)
+                except AttributeError:
+                    print('ERROR: You must create a table before loading to it. Try initiate_table().')
+                except sqlite3.OperationalError:
+                    print("Another application is currently using the database,"
+                          " waiting 1 minute then attempting to continue.")
+                    time.sleep(60)
+                    insert_data()
+
+            insert_data()
 
             print("Table has been populated, commit() to finalize operation.")
 
