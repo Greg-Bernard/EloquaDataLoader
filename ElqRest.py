@@ -33,6 +33,9 @@ class ElqRest(object):
 
         self.filename = filename
 
+        print("-"*50)
+        print("Beginning External Activity Sync.")
+
         if all(arg is not None for arg in (username, password, company)):
 
             if req.json() == 'Not authenticated.':
@@ -139,7 +142,7 @@ class ElqRest(object):
             if end != 99999:
                 print("Extracting from {} to {}.".format(start, end-1))
             else:
-                print("Extracting everything after: {}".format(start))
+                print("Extracting everything after: {}".format(start) + "\nThis could take a while.")
 
             new_data = self.get_activities(start=int(start), end=end)
 
@@ -188,11 +191,5 @@ def main():
     db.populate_table(end=104)
 
 
-"""
-fieldValues
-Type: array 
-Additional Properties Allowed:
-Array containing type and id value
-"""
 if __name__ == '__main__':
     main()
