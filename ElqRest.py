@@ -188,7 +188,7 @@ class ElqRest(object):
 def main():
 
     db = ElqRest()
-    db.populate_table(end=104)
+    db.populate_table()
 
 
 if __name__ == '__main__':
