@@ -1,8 +1,8 @@
 # EloquaDataLoader
-Export data from Oracle Eloqua's BULK API using the Python Eloqua API wrapper made by Jeremiah Coleman ([pyeloqua](https://pypi.python.org/pypi/pyeloqua/0.5.6)) then either sync it into an SQlite3 database or dump into JSON files.
+Export data from Oracle Eloqua's BULK API then either sync it into an SQlite3 database or dump into JSON files.
 
-## Basics: Using the script
-To use the script fill in your Eloqua login information in **config** module, then run the functions located in the **ldbs** module to perform the various syncs available.
+## Basics: Using the program
+To use the program fill in your Eloqua login information in **config** module, then run the functions located in the **ldbs** module to perform the various syncs available.
 
 You can use the hourly_sync, or daily_sync functions to run any of the scripts in this module at the intervals you specify.
 
