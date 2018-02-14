@@ -1,9 +1,9 @@
 #!/usr/bin/python
-# ElqDB scheduler by Greg Bernard
+# ElqBulk scheduler by Greg Bernard
 
 import schedule
 import time
-from ElqDB import ElqDB
+from ElqBulk import ElqBulk
 import TableNames
 import geoip
 
@@ -25,7 +25,7 @@ def initialise_table(table, filename='ElqData.db'):
     """
 
     # Only load/update all values for a single table
-    tb = ElqDB(filename=filename, table=table)
+    tb = ElqBulk(filename=filename, table=table)
     tb.create_table()
     tb.get_initial_data()
     tb.load_to_database()
@@ -50,7 +50,7 @@ def sync_table(table, filename='EloquaDB.db'):
     """
 
     # Only load/update all values for a single table
-    tb = ElqDB(filename=filename, table=table)
+    tb = ElqBulk(filename=filename, table=table)
     tb.create_table()
     tb.get_sync_data()
     tb.load_to_database()
