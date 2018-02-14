@@ -103,7 +103,7 @@ class ElqRest(object):
 
         column_def = {
             'type': 'TEXT',
-            'id': 'TEXT PRIMARY KEY',
+            'id': 'INTEGER PRIMARY KEY',
             'depth': 'TEXT',
             'name': 'TEXT',
             'activityDate': 'DATETIME',
@@ -159,6 +159,7 @@ class ElqRest(object):
             # Convert unix timestamps to datetime
             d['activityDate'] = datetime.datetime.fromtimestamp(
                 int(d['activityDate'])).strftime('%Y-%m-%d %H:%M:%S')
+            d['id'] = int(d['id'])
             sql_data.append(list(d.values()))
 
         def insert_data():
