@@ -7,7 +7,8 @@ To use the script fill in your Eloqua login information in **config** module, th
 You can use the hourly_sync, or daily_sync functions to run any of the scripts in this module at the intervals you specify.
 
 ### Module Breakdown:
-* **ElqDB** - The core module that holds the ElqDB class which performs the Exports, syncs to your SQLite database, and dumps to JSON
+* **ElqBulk** - The core module that holds the ElqBulk class which performs BULK API 2.0 exports and syncs to your SQLite database, or dumps to JSON
+* **ElqRest** - A custom wrapper for the Eloqua REST 2.0 API to import any, or all External Activities in your Eloqua instance.
 * **TableNames** - The list of tables currently available for export through BULK API in Eloqua
 * **config** - Company, username, and password used to log in to allow ElqDB to function, requires a user with Advanced Marketing User privileges or higher
 * **ldbs** - This is the module you'll be running most of the time, it has functions that facilitate the majority of syncing actions available through this script
