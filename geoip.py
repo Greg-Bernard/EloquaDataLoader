@@ -37,26 +37,28 @@ class IpLoc:
         """
         Get available location information for provided IP Addresses in SQlite Row format
         """
+        geo_data = []
 
         print("Retrieving IP locations from the GeoLite2 data set.")
         for ip in self.raw_ip_data:
             try:
                 d = self.reader.get(ip['IpAddress'])
                 d['IpAddress'] = ip['IpAddress']
-                self.geo_data.append(d)
+                geo_data.append(d)
             except ValueError:
                 continue
             except TypeError:
                 continue
 
-        # print(self.geo_data[0])
-        return self.geo_data
+        return geo_data
 
     def process_step(self):
         """
         Steps to process the raw data output from ip_data and make it suitable for analysis
         """
         print("Processing GeoLite2 export data for the database.")
+
+        new_data = []
 
         for dictionary in self.geo_data:
             foo_dict = {}
@@ -73,13 +75,13 @@ class IpLoc:
                     foo_dict.update({k: v['code']})
                 elif isinstance(v, dict):
                     foo_dict.update({k: v['names']['en']})
-            self.new_data.append(foo_dict)
+                    new_data.append(foo_dict)
 
         print("-"*50)
         print("Last record:")
-        print(self.new_data[-1])
+        print(new_data[-1])
         print("-"*50)
-        return self.new_data
+        return new_data
 
     def create_table(self):
         """
