@@ -4,6 +4,7 @@
 import sqlite3
 import maxminddb
 import csv
+import time
 
 tables_with_ip = ['EmailClickthrough', 'EmailOpen', 'PageView', 'WebVisit']
 
@@ -18,12 +19,9 @@ class IpLoc:
 
         self.db = sqlite3.connect(self.filename, detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
         self.db.row_factory = sqlite3.Row
-
-        self.geo_data = []
-        self.new_data = []
-        self.reader = maxminddb.open_database(self.database)
-
         c = self.db.cursor()
+
+        self.reader = maxminddb.open_database(self.database)
 
         try:
             sql_data = c.execute('SELECT IpAddress FROM {}'.format(self.tablename))
@@ -31,6 +29,9 @@ class IpLoc:
         except sqlite3.OperationalError:
             print("ERROR: There is no IpAddress column in this table.")
             exit()
+
+        self.geo_data = self.ip_data()
+        self.new_data = self.process_step()
 
     def ip_data(self):
         """
@@ -111,27 +112,32 @@ class IpLoc:
         """
         Save location data to local database
         """
-        print("Processing data for SQL database...")
 
         try:
             col = list(self.new_data[0].keys())
+            table_col = ', '.join("'{}'".format(key) for key in col)
             col_count = len(col)
             print("Adding data to {} columns.".format(col_count))
 
             sql_data = []
             for d in self.new_data:
-                if len(list(d.values())) == 8:
+                if len(list(d.values())) == col_count:
                     sql_data.append(list(d.values()))
 
-            try:
-                self.db.executemany("""INSERT OR REPLACE INTO GeoIP VALUES ({})""".format(
-                    ", ".join("?" * col_count)), sql_data)
-            except AttributeError:
-                print("ERROR: You must create columns in the table before loading to it. Try create_columns().")
-            except sqlite3.OperationalError:
-                print("""ERROR: The database is locked by another program,
-                please commit and close before running this script.""")
-                exit()
+            def insert_data():
+
+                try:
+                    self.db.executemany("""INSERT OR REPLACE INTO GeoIP({}) VALUES ({})""".format(
+                        table_col, ", ".join("?" * col_count)), sql_data)
+                except AttributeError:
+                    print("ERROR: You must create columns in the table before loading to it. Try create_columns().")
+                except sqlite3.OperationalError:
+                    print("geoip: Another application is currently using the database,"
+                          " waiting 15 seconds then attempting to continue.")
+                    time.sleep(15)
+                    insert_data()
+
+            insert_data()
 
             print("Table has been populated, commit to finalize operation.")
 

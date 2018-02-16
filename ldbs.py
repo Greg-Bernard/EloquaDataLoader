@@ -7,6 +7,7 @@ from ElqBulk import ElqBulk
 from ElqRest import ElqRest
 import TableNames
 import geoip
+from closest_city import CityAppend
 
 
 def initialise_database(filename='EloquaDB.db'):
@@ -110,11 +111,23 @@ def run_geoip(**kwargs):
     filename = kwargs.get('filename', 'EloquaDB.db')
 
     db = geoip.IpLoc(filename=filename, tablename=tablename)
-    db.ip_data()
-    db.process_step()
     db.create_table()
     db.save_location_data()
     db.commit_and_close()
+
+
+def closest_city(**kwargs):
+    """
+    Takes every coordinate in the GeoIP table and calculates the closest city against every major population center in NA
+    :param kwargs: table = name of the table (GeoIP), filename = name of database file (EloquaDB.db)
+    """
+
+    table = kwargs.get('table', 'GeoIP')
+    filename = kwargs.get('filename', 'EloquaDB.db')
+
+    cc = CityAppend(filename=filename, table=table)
+    cc.closest_cities()
+    cc.load_to_database()
 
 
 def daily_sync(**kwargs):
@@ -168,23 +181,28 @@ def main():
     """
 
     # Performs full database sync, only updating records modified since the last sync
-    sync_database(filename='EloquaDB.db')
-
-    # Performs full database sync, only updating records modified since the last sync
-    sync_external_activities(filename='EloquaDB.db')
+    # sync_database(filename='EloquaDB.db')
 
     # Iterates through all tables with IP addresses and logs the IP with
     # its geolocation in the GeoIP table
     full_geoip(filename='EloquaDB.db')
 
+    # Performs full external activity sync, only updating records created since the last sync
+    # WARNING THIS CAN USE A HIGH NUMBER OF API CALLS AND A LONG TIME - CHECK YOUR API LIMIT BEFORE USING THIS
+    sync_external_activities(filename='EloquaDB.db')
+
+    # Calculates the distance from a given point to every major population center in North America
+    # Then returns that population center, the distance from it in km, and the country that city is in
+    closest_city(filename='EloquaDB.db')
+
     # Exports GeoIP table inner joined with tables that contain activities
     # with IP addresses in csv format
     geoip.export_geoip(filename='EloquaDB.db')
 
+
 # When using schedulers
 # To clear all functions
 # schedule.clear()
-
 
 # if this module is run as main it will execute the main routine
 if __name__ == '__main__':

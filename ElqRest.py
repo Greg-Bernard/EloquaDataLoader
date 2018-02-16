@@ -1,3 +1,6 @@
+#!/usr/bin/python
+# ElqRest functions by Greg Bernard
+
 import datetime
 import requests
 import config
@@ -170,9 +173,9 @@ class ElqRest(object):
                 c.executemany("""INSERT OR REPLACE INTO {} VALUES ({})""".format(
                     table, ",".join("?" * col_count)), sql_data)
             except sqlite3.OperationalError:
-                print("Another application is currently using the database,"
-                      " waiting 1 minute then attempting to continue.")
-                time.sleep(60)
+                print("ElqRest: Another application is currently using the database,"
+                      " waiting 15 seconds then attempting to continue.")
+                time.sleep(15)
                 insert_data()
 
         insert_data()

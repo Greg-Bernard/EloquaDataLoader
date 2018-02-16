@@ -348,9 +348,9 @@ class ElqBulk(object):
                 except AttributeError:
                     print('ERROR: You must create a table before loading to it. Try initiate_table().')
                 except sqlite3.OperationalError:
-                    print("Another application is currently using the database,"
-                          " waiting 1 minute then attempting to continue.")
-                    time.sleep(60)
+                    print("ElqBulk: Another application is currently using the database,"
+                          " waiting 15 seconds then attempting to continue.")
+                    time.sleep(15)
                     insert_data()
 
             insert_data()
