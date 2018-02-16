@@ -8,15 +8,6 @@ import sqlite3
 import time
 
 
-"""
-Use:
-
-https://github.com/fredsakr/eloqua-python-request/blob/master/lib/eloqua_request.py
-https://github.com/colemanja91/pyeloqua/blob/master/pyeloqua/pyeloqua.py
-https://docs.oracle.com/cloud/latest/marketingcs_gs/OMCAC/DeterminingBaseURL.html
-https://docs.oracle.com/cloud/latest/marketingcs_gs/OMCAC/op-api-REST-2.0-data-activity-%7Bid%7D-get.html#request    
-"""
-
 API_VERSION = '2.0'  # Change to use a different API version
 POST_HEADERS = {'Content-Type': 'application/json'}
 
