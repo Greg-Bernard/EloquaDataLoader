@@ -1,197 +1,178 @@
 #!/usr/bin/python
-# IpLoc by Greg Bernard
+# ElqBulk scheduler by Greg Bernard
 
-import sqlite3
-import maxminddb
-import csv
+import schedule
 import time
-
-tables_with_ip = ['EmailClickthrough', 'EmailOpen', 'PageView', 'WebVisit']
-
-
-class IpLoc:
-
-    def __init__(self, **kwargs):
-
-        self.tablename = kwargs.get('tablename', 'EmailClickthrough')
-        self.filename = kwargs.get('filename', 'EloquaDB.db')
-        self.database = kwargs.get('database', 'GeoLite2-City.mmdb')
-
-        self.db = sqlite3.connect(self.filename, detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
-        self.db.row_factory = sqlite3.Row
-        c = self.db.cursor()
-
-        self.reader = maxminddb.open_database(self.database)
-
-        try:
-            sql_data = c.execute('SELECT IpAddress FROM {}'.format(self.tablename))
-            self.raw_ip_data = sql_data.fetchall()
-        except sqlite3.OperationalError:
-            print("ERROR: There is no IpAddress column in this table.")
-            exit()
-
-        self.geo_data = self.ip_data()
-        self.new_data = self.process_step()
-
-    def ip_data(self):
-        """
-        Get available location information for provided IP Addresses in SQlite Row format
-        """
-        geo_data = []
-
-        print("Retrieving IP locations from the GeoLite2 data set.")
-        for ip in self.raw_ip_data:
-            try:
-                d = self.reader.get(ip['IpAddress'])
-                d['IpAddress'] = ip['IpAddress']
-                geo_data.append(d)
-            except ValueError:
-                continue
-            except TypeError:
-                continue
-
-        return geo_data
-
-    def process_step(self):
-        """
-        Steps to process the raw data output from ip_data and make it suitable for analysis
-        """
-        print("Processing GeoLite2 export data for the database.")
-
-        new_data = []
-
-        for dictionary in self.geo_data:
-            foo_dict = {}
-            for k, v in dictionary.items():
-                if k == 'location':
-                    try:
-                        foo_dict.update({'latitude': v['latitude']})
-                        foo_dict.update({'longitude': v['longitude']})
-                    except AttributeError:
-                        continue
-                elif k == 'IpAddress':
-                    foo_dict.update({k: v})
-                elif k == 'postal':
-                    foo_dict.update({k: v['code']})
-                elif isinstance(v, dict):
-                    foo_dict.update({k: v['names']['en']})
-                    new_data.append(foo_dict)
-
-        print("-"*50)
-        print("Last record:")
-        print(new_data[-1])
-        print("-"*50)
-        return new_data
-
-    def create_table(self):
-        """
-        Creates a new table in the database to sync IP geolocation data to.
-        """
-        columns = {}
-        first_dict = self.new_data[0]
-
-        for key, value in first_dict.items():
-            columns.update({key: None})
-
-        for key, value in first_dict.items():
-            if key == 'IpAddress':
-                columns[key] = 'TEXT PRIMARY KEY'
-            elif isinstance(value, str):
-                columns[key] = "TEXT"
-            elif isinstance(value, float):
-                columns[key] = "REAL"
-            else:
-                columns[key] = "TEXT"
-
-        col = ', '.join("'{}' {}".format(key, val) for key, val in columns.items())
-
-        print("Creating GeoIP a table if one doesn't exist yet.")
-
-        self.db.execute('''CREATE TABLE IF NOT EXISTS GeoIP
-                        ({})'''.format(col))
-
-    def save_location_data(self):
-        """
-        Save location data to local database
-        """
-
-        try:
-            col = list(self.new_data[0].keys())
-            table_col = ', '.join("'{}'".format(key) for key in col)
-            col_count = len(col)
-            print("Adding data to {} columns.".format(col_count))
-
-            sql_data = []
-            for d in self.new_data:
-                if len(list(d.values())) == col_count:
-                    sql_data.append(list(d.values()))
-
-            def insert_data():
-
-                try:
-                    self.db.executemany("""INSERT OR REPLACE INTO GeoIP({}) VALUES ({})""".format(
-                        table_col, ", ".join("?" * col_count)), sql_data)
-                except AttributeError:
-                    print("ERROR: You must create columns in the table before loading to it. Try create_columns().")
-                except sqlite3.OperationalError:
-                    print("geoip: Another application is currently using the database,"
-                          " waiting 15 seconds then attempting to continue.")
-                    time.sleep(15)
-                    insert_data()
-
-            insert_data()
-
-            print("Table has been populated, commit to finalize operation.")
-
-        except (AttributeError, TypeError):
-            print("ERROR: You must use get_initial_data() or get_sync_data() "
-                  "to grab data from Eloqua before writing to a database.")
-            exit()
-
-    def commit_and_close(self):
-        """
-        Commit all changes to the database
-        """
-        self.db.commit()
-        self.db.close()
-        self.reader.close()
-        print("Data has been committed.")
+from ElqBulk import ElqBulk
+from ElqRest import ElqRest
+import TableNames
+import geoip
+from closest_city import CityAppend
 
 
-def export_geoip(**kwargs):
+def initialise_database(filename='EloquaDB.db'):
     """
-    Exports all tables from the SQL database, use after full IpLoc process has complete
-    :param tables: List of tables to pull IP addresses from
-    :param filename: File to check for tables with IP addresses
+    Initialise entire database in one run
     """
-    tables = kwargs.get('tables', tables_with_ip)
+
+    for item in TableNames.tables:
+        initialise_table(item, filename)
+
+
+def initialise_table(table, filename='ElqData.db'):
+    """
+    Initialise only the data for a single table
+    :param table: the name of the table you're syncing from Eloqua
+    :param filename: the name of the file you're dumping the data into
+    """
+
+    # Only load/update all values for a single table
+    tb = ElqBulk(filename=filename, table=table)
+    tb.create_table()
+    tb.get_initial_data()
+    tb.load_to_database()
+    tb.commit()
+    tb.close()
+
+
+def sync_database(filename='EloquaDB.db'):
+    """
+    Sync entire database in one run
+    """
+
+    for item in TableNames.tables:
+        sync_table(item, filename)
+
+
+def sync_table(table, filename='EloquaDB.db'):
+    """
+    Sync only the data for a single table
+    :param table: the name of the table you're syncing from Eloqua
+    :param filename: the name of the file you're dumping the data into
+    """
+
+    # Only load/update all values for a single table
+    tb = ElqBulk(filename=filename, table=table)
+    tb.create_table()
+    tb.get_sync_data()
+    tb.load_to_database()
+    tb.commit()
+    tb.close()
+
+
+def sync_tables(tables, filename='EloquaDB.db'):
+    """
+    Initialize the data for 1 to many tables
+    :param tables: the list of the tables you're syncing from Eloqua
+    :param filename: the name of the file you're dumping the data into
+    """
+
+    if set(tables).issubset(TableNames.tables) is False:
+        print("The inputs must be within the accepted list of Eloqua tables.")
+        exit()
+
+    for item in tables:
+        sync_table(item, filename)
+
+
+def sync_external_activities(filename='EloquaDB.db', start=None, end=99999):
+    """
+    Syncs external activities to the database
+    :param filename: the name of the file you're dumping the data into
+    :param start: number of the record you wish to start you pull from, defaults to last record created
+    :param end: number of the last record you wish to pull, non-inclusive
+    """
+
+    db = ElqRest(filename=filename)
+    db.populate_table(start=start, end=end)
+
+
+def full_geoip(**kwargs):
+    """
+    Run geoip on all tables that contain the column IpAddress.
+    :param filename: file to sync to
+    :param tables_with_ip: list of tables containing IP Addresses to cycle through
+    """
+    tables_with_ip = kwargs.get('tables_with_ip', ['EmailClickthrough', 'EmailOpen', 'PageView', 'WebVisit'])
     filename = kwargs.get('filename', 'EloquaDB.db')
 
-    db = sqlite3.connect(filename, detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
+    for tb in tables_with_ip:
+        run_geoip(filename=filename, tablename=tb)
 
-    for table in tables:
-        print("Exporting {} georeferenced activity records from {}.".format(table, filename))
-        c = db.cursor()
-        sql_data = c.execute("""SELECT * FROM {} INNER JOIN GeoIP ON GeoIP.IpAddress = {}.IpAddress"""
-                             .format(table, table))
-        column_names = [description[0] for description in sql_data.description]
-        csv_data = sql_data.fetchall()
 
-        print("-"*50)
-        print("Last record:")
-        print(csv_data[-1])
-        print("-"*50)
-        print("Exporting {} GeoIP data to CSV.".format(table))
+def run_geoip(**kwargs):
+    """
+    Runs the IP lookup on specified tables that creates a table indexing all
+    IP Address Geolocations where at least the city was provided
+    :param filename: file to sync to
+    :param tablename: table to take IP Addresses from to geolocate
+    """
+    tablename = kwargs.get('tablename','EmailClickthrough')
+    filename = kwargs.get('filename', 'EloquaDB.db')
 
-        with open('{} GeoIP.csv'.format(table), 'w', newline='', encoding='utf-8') as csvfile:
-            writer = csv.writer(csvfile, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-            writer.writerow(column_names)
-            for d in csv_data:
-                writer.writerow(d)
+    db = geoip.IpLoc(filename=filename, tablename=tablename)
+    db.create_table()
+    db.save_location_data()
+    db.commit_and_close()
 
-        print("Finished exporting {}.".format(table))
 
-    db.close()
+def closest_city(**kwargs):
+    """
+    Takes every coordinate in the GeoIP table and calculates the closest city against every major population center in NA
+    :param kwargs: table = name of the table (GeoIP), filename = name of database file (EloquaDB.db)
+    """
+
+    table = kwargs.get('table', 'GeoIP')
+    filename = kwargs.get('filename', 'EloquaDB.db')
+
+    cc = CityAppend(filename=filename, table=table)
+    cc.closest_cities()
+    cc.load_to_database()
+
+
+def daily_sync(**kwargs):
+    """
+    Schedule a sync every day at specified time, default to midnight
+    :param daytime: which time of day to perform the sync Format: hh:mm
+    :param sync: which sync function to perform
+    :param filename: file to sync to
+    """
+    daytime = kwargs.get('daytime', "00:00")
+    filename = kwargs.get('filename', 'EloquaDB.db')
+    sync = kwargs.get('sync', sync_database(filename=filename))
+
+    print("Scheduling a daily Eloqua sync at {}.".format(daytime))
+    schedule.every().day.at(daytime).do(sync)
+
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
+
+
+def hourly_sync(**kwargs):
+    """
+    Schedule a sync every set number of hours
+    :param hours: how many hours to wait between syncs
+    :param sync: which sync function to perform
+    :param filename: file to sync to
+    """
+    hours = kwargs.get('hours', 4)
+    filename = kwargs.get('filename', 'EloquaDB.db')
+    sync = kwargs.get('sync', sync_database(filename=filename))
+
+    print("Scheduling an Eloqua sync every {} hours.".format(hours))
+    schedule.every(hours).hours.do(sync)
+
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
+
+
+def available_tables():
+    """
+    Return available table names for export.
+    """
+    print(TableNames.tables)
 
 
 def main():
@@ -199,21 +180,29 @@ def main():
     Main function runs when file is run as main.
     """
 
+    # Performs full database sync, only updating records modified since the last sync
+    sync_database(filename='EloquaDB.db')
+
     # Iterates through all tables with IP addresses and logs the IP with
     # its geolocation in the GeoIP table
-    for tb in tables_with_ip:
+    full_geoip(filename='EloquaDB.db')
 
-        db = IpLoc(tablename=tb)
-        db.ip_data()
-        db.process_step()
-        db.create_table()
-        db.save_location_data()
-        db.commit_and_close()
+    # Calculates the distance from a given point to every major population center in North America
+    # Then returns that population center, the distance from it in km, and the country that city is in
+    closest_city(filename='EloquaDB.db')
+
+    # Performs full external activity sync, only updating records created since the last sync
+    # WARNING THIS CAN USE A HIGH NUMBER OF API CALLS AND TAKE A LONG TIME - CHECK YOUR API LIMIT BEFORE USING THIS
+    sync_external_activities(filename='EloquaDB.db')
 
     # Exports GeoIP table inner joined with tables that contain activities
     # with IP addresses in csv format
-    export_geoip()
+    geoip.export_geoip(filename='EloquaDB.db')
 
+
+# When using schedulers
+# To clear all functions
+# schedule.clear()
 
 # if this module is run as main it will execute the main routine
 if __name__ == '__main__':
