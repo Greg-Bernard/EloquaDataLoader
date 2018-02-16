@@ -27,7 +27,7 @@ You can set up any kind of sync you'd like in this module, as well as run most f
          """
 
          # Performs full database sync, only updating records modified since the last sync
-         # sync_database(filename='EloquaDB.db')
+         sync_database(filename='EloquaDB.db')
 
          # Iterates through all tables with IP addresses and logs the IP with
          # its geolocation in the GeoIP table
