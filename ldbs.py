@@ -202,7 +202,7 @@ def main():
     closest_city(filename='EloquaDB.db')
 
     # Performs a full campaign sync, updates the last 'page' of campaigns (default page size is set to 100)
-    sync_campaigns(filename='Eloquadb.db')
+    sync_campaigns(filename='EloquaDB.db')
 
     # Performs full external activity sync, only updating records created since the last sync
     # WARNING THIS CAN USE A HIGH NUMBER OF API CALLS AND TAKE A LONG TIME - CHECK YOUR API LIMIT BEFORE USING THIS
