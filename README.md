@@ -8,7 +8,7 @@ You can use the hourly_sync, or daily_sync functions to run any of the scripts i
 
 ### Module Breakdown:
 * **ElqBulk** - The core module that holds the ElqBulk class which performs BULK API 2.0 exports and syncs to your SQLite database, or dumps to JSON
-* **ElqRest** - **WARNING:** *Due to Eloqua not actually supporting bulk export of External Activities, this function uses a large amount of API calls, and takes a long time to complete a fresh pull, use at your own risk.* A custom wrapper for the Eloqua REST 2.0 API to import any, or all External Activities in your Eloqua instance.
+* **ElqRest** - **WARNING:** *Due to Eloqua not actually supporting bulk export of External Activities, this function uses a large amount of API calls, and takes a long time to complete a fresh pull, use at your own risk.* A custom wrapper for the Eloqua REST 2.0 API to import any, or all External Activities or Campaigns from your Eloqua instance.
 * **TableNames** - The list of tables currently available for export through BULK API in Eloqua
 * **config** - Company, username, and password used to log in to allow ElqDB to function, requires a user with Advanced Marketing User privileges or higher
 * **ldbs** - This is the module you'll be running most of the time, it has functions that facilitate the majority of syncing actions available through this script
@@ -33,13 +33,16 @@ You can set up any kind of sync you'd like in this module, as well as run most f
          # its geolocation in the GeoIP table
          full_geoip(filename='EloquaDB.db')
 
-         # Performs full external activity sync, only updating records created since the last sync
-         # WARNING THIS CAN USE A HIGH NUMBER OF API CALLS AND A LONG TIME - CHECK YOUR API LIMIT BEFORE USING THIS
-         sync_external_activities(filename='EloquaDB.db')
-
          # Calculates the distance from a given point to every major population center in North America
          # Then returns that population center, the distance from it in km, and the country that city is in
          closest_city(filename='EloquaDB.db')
+
+         # Performs a full campaign sync, updates the last 'page' of campaigns (default page size is set to 100)
+         sync_campaigns(filename='Eloquadb.db')
+
+         # Performs full external activity sync, only updating records created since the last sync
+         # WARNING THIS CAN USE A HIGH NUMBER OF API CALLS AND TAKE A LONG TIME - CHECK YOUR API LIMIT BEFORE USING THIS
+         sync_external_activities(filename='EloquaDB.db')
 
          # Exports GeoIP table inner joined with tables that contain activities
          # with IP addresses in csv format
