@@ -191,18 +191,18 @@ def main():
     """
 
     # Performs full database sync, only updating records modified since the last sync
-    # sync_database(filename='EloquaDB.db')
+    sync_database(filename='EloquaDB.db')
 
     # Iterates through all tables with IP addresses and logs the IP with
     # its geolocation in the GeoIP table
-    # full_geoip(filename='EloquaDB.db')
+    full_geoip(filename='EloquaDB.db')
 
     # Calculates the distance from a given point to every major population center in North America
     # Then returns that population center, the distance from it in km, and the country that city is in
-    # closest_city(filename='EloquaDB.db')
+    closest_city(filename='EloquaDB.db')
 
     # Performs a full campaign sync, updates the last 'page' of campaigns (default page size is set to 100)
-    # sync_campaigns(filename='Eloquadb.db')
+    sync_campaigns(filename='Eloquadb.db')
 
     # Performs full external activity sync, only updating records created since the last sync
     # WARNING THIS CAN USE A HIGH NUMBER OF API CALLS AND TAKE A LONG TIME - CHECK YOUR API LIMIT BEFORE USING THIS
