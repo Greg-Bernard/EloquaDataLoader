@@ -83,8 +83,18 @@ def sync_external_activities(filename='EloquaDB.db', start=None, end=99999):
     :param end: number of the last record you wish to pull, non-inclusive
     """
 
-    db = ElqRest(filename=filename)
-    db.populate_table(start=start, end=end)
+    db = ElqRest(filename=filename, sync='external')
+    db.export_external(start=start, end=end)
+
+
+def sync_campaigns(filename='EloquaDB.db'):
+    """
+    Syncs campaigns to the database
+    :param filename: the name of the file you're dumping the data into
+    """
+
+    db = ElqRest(filename=filename, sync='campaigns')
+    db.export_campaigns()
 
 
 def full_geoip(**kwargs):
@@ -107,10 +117,10 @@ def run_geoip(**kwargs):
     :param filename: file to sync to
     :param tablename: table to take IP Addresses from to geolocate
     """
-    tablename = kwargs.get('tablename','EmailClickthrough')
+    table = kwargs.get('table','EmailClickthrough')
     filename = kwargs.get('filename', 'EloquaDB.db')
 
-    db = geoip.IpLoc(filename=filename, tablename=tablename)
+    db = geoip.IpLoc(filename=filename, tablename=table)
     db.create_table()
     db.save_location_data()
     db.commit_and_close()
@@ -185,15 +195,18 @@ def main():
 
     # Iterates through all tables with IP addresses and logs the IP with
     # its geolocation in the GeoIP table
-    full_geoip(filename='EloquaDB.db')
-
-    # Performs full external activity sync, only updating records created since the last sync
-    # WARNING THIS CAN USE A HIGH NUMBER OF API CALLS AND A LONG TIME - CHECK YOUR API LIMIT BEFORE USING THIS
-    sync_external_activities(filename='EloquaDB.db')
+    # full_geoip(filename='EloquaDB.db')
 
     # Calculates the distance from a given point to every major population center in North America
     # Then returns that population center, the distance from it in km, and the country that city is in
-    closest_city(filename='EloquaDB.db')
+    # closest_city(filename='EloquaDB.db')
+
+    # Performs a full campaign sync, updates the last 'page' of campaigns (default page size is set to 100)
+    # sync_campaigns(filename='Eloquadb.db')
+
+    # Performs full external activity sync, only updating records created since the last sync
+    # WARNING THIS CAN USE A HIGH NUMBER OF API CALLS AND TAKE A LONG TIME - CHECK YOUR API LIMIT BEFORE USING THIS
+    sync_external_activities(filename='EloquaDB.db')
 
     # Exports GeoIP table inner joined with tables that contain activities
     # with IP addresses in csv format
