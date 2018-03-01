@@ -195,35 +195,35 @@ def available_tables():
     print(TableNames.tables)
 
 
-def main():
+def main(filename='EloquaDB.db'):
     """
     Main function runs when file is run as main.
     """
 
     # Performs full database sync, only updating records modified since the last sync
-    sync_database(filename='EloquaDB.db')
+    sync_database(filename=filename)
 
     # Iterates through all tables with IP addresses and logs the IP with
     # its geolocation in the GeoIP table
-    full_geoip(filename='EloquaDB.db')
+    full_geoip(filename=filename)
 
     # Calculates the distance from a given point to every major population center in North America
     # Then returns that population center, the distance from it in km, and the country that city is in
-    closest_city(filename='EloquaDB.db')
+    closest_city(filename=filename)
 
     # Performs a full sync of all users in Eloqua
-    sync_users(filename='EloquaDB.db')
+    sync_users(filename=filename)
 
     # Performs a full campaign sync, updates the last 'page' of campaigns (default page size is set to 100)
-    sync_campaigns(filename='EloquaDB.db')
+    sync_campaigns(filename=filename)
 
     # Performs full external activity sync, only updating records created since the last sync
     # WARNING THIS CAN USE A HIGH NUMBER OF API CALLS AND TAKE A LONG TIME - CHECK YOUR API LIMIT BEFORE USING THIS
-    sync_external_activities(filename='EloquaDB.db')
+    sync_external_activities(filename=filename)
 
     # Exports GeoIP table inner joined with tables that contain activities
     # with IP addresses in csv format
-    geoip.export_geoip(filename='EloquaDB.db')
+    geoip.export_geoip(filename=filename)
 
 
 # When using schedulers
