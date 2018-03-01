@@ -35,7 +35,7 @@ class ElqRest(object):
         self.filename = filename
 
         print("-"*50)
-        print("Beginning External Activity Sync.")
+        print("Beginning {} sync.".format(sync))
 
         if all(arg is not None for arg in (username, password, company)):
 
