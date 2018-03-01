@@ -75,24 +75,29 @@ class ElqRest(object):
         :return: The requested data
         """
 
-        asset = self.sync
         depth = ""
-        multi_assets = ['campaigns', ]
+        multi_assets = ['campaigns', 'users']
 
-        if asset == 'external':
+        if self.sync == 'external':
             asset_type = 'data/activity/'
-        elif asset == 'campaigns':
+        elif self.sync == 'campaigns':
             asset_type = 'assets/campaigns'
             depth = 'depth=partial&'
-        elif asset == 'campaign':
+        elif self.sync == 'campaign':
             asset_type = 'assets/campaign/'
+        elif self.sync == 'users':
+            asset_type = 'system/users'
+            depth = 'depth=complete'
+            self.rest_base = self.rest_bs_un.format(
+                version='1.0')
+            # print(self.rest_base)
         else:
             raise Exception(
-                "Please enter an accepted REST input: external, campaign, campaigns")
+                "Please enter an accepted REST input: external, campaign, campaigns, users")
 
         if count is None:
             count_item = ""
-        elif (count is not None) and (asset not in multi_assets):
+        elif (count is not None) and (self.sync not in multi_assets):
             # print("{} does not accept the input count, removing.".format(asset))
             count_item = ""
         else:
@@ -100,13 +105,13 @@ class ElqRest(object):
 
         if page is None:
             page_item = ""
-        elif (page is not None) and (asset not in multi_assets):
+        elif (page is not None) and (self.sync not in multi_assets):
             # print("{} does not accept the input page, removing.".format(asset))
             page_item = ""
         else:
             page_item = "page={}&".format(page)
 
-        if (asset not in multi_assets) and (asset_id is not None):
+        if (self.sync not in multi_assets) and (asset_id is not None):
             asset_id = asset_id
         else:
             asset_id = "?"
@@ -134,8 +139,9 @@ class ElqRest(object):
         activities = []
 
         for i in range(start, end):
-            if self.get(asset_id=i) is not None:
-                activities.append(self.get(asset_id=i))
+            data = self.get(asset_id=i)
+            if data is not None:
+                activities.append(data)
             else:
                 print("No more activity data, last record exported: {}.".format(i-1))
                 break
@@ -157,8 +163,9 @@ class ElqRest(object):
         print("Starting export on page: {}".format(p_start))
 
         for i in range(p_start, p_end):
-            if len(self.get(count=count, page=i)['elements']) != 0:
-                campaigns.extend(self.get(count=count, page=i)['elements'])
+            data = self.get(count=count, page=i)['elements']
+            if len(data) != 0:
+                campaigns.extend(data)
             else:
                 print("No more campaign data, last page exported: {}".format(i-1))
                 break
@@ -166,6 +173,29 @@ class ElqRest(object):
         self.sync = 'campaigns'
 
         return campaigns
+
+    def get_users(self, count=1000, p_start=1, p_end=9999999):
+
+        users = []
+
+        print("Starting export...")
+
+        for i in range(p_start, p_end):
+            try:
+                data = self.get(count=count, page=i)['elements']
+            except TypeError:
+                break
+            # print(i)
+            if len(data) != 0:
+                # print(data)
+                users.extend(data)
+            else:
+                print("No more user data, last page exported: {}".format(i-1))
+                break
+
+        self.sync = 'users'
+
+        return users
 
     # DATA INSERTION  ----------------------------------------------------------------------------------------
 
@@ -191,7 +221,7 @@ class ElqRest(object):
 
     def export_campaigns(self, table='Campaigns'):
         """
-        Populates the campaigns table in the database.
+        Populates campaigns table in the database.
         :param table: name of the table to create, or search in the database
         """
 
@@ -300,11 +330,56 @@ class ElqRest(object):
 
         self.insert_data(table=table, col_count=col_count, sql_data=sql_data)
 
+    def export_users(self, table='users'):
+        """
+        Populates users table in the database.
+        :param table: name of the table to create, or search in the database
+        """
+
+        col = ', '.join("'{}' {}".format(key, val) for key, val in TableNames.users_col_def.items())
+
+        self.c.execute('''CREATE TABLE IF NOT EXISTS {table} ({columns});'''
+                       .format(table=table, columns=col))
+
+        new_data = self.get_users(count=100)
+        sql_data = []
+        date_columns = [k for k, v in TableNames.users_col_def.items()
+                        if (v.find('DATETIME') >= 0) or (v.find('TIMESTAMP') >= 0)]
+
+        for d in new_data:
+            dic = {}
+            for c in date_columns:
+                # Convert unix timestamps to datetime
+                try:
+                    d[c] = datetime.datetime.fromtimestamp(
+                        int(d[c])).strftime('%Y-%m-%d %H:%M:%S')
+                except KeyError:
+                    d[c] = ""
+                    continue
+
+            # Remove extra columns from some users
+            if len(d) != 12:
+                for k in TableNames.users_col_def.keys():
+                    dic[k] = d[k]
+                d = dic
+
+            sql_data.append(list(d.values()))
+
+        col_count = len(sql_data[0])
+        # for l in sql_data:
+        #     print(l)
+        # print(col_count)
+
+        self.insert_data(table=table, col_count=col_count, sql_data=sql_data)
+
 
 def main():
 
-    db = ElqRest(sync='campaigns')
-    db.export_campaigns()
+    # db = ElqRest(sync='campaigns')
+    # db.export_campaigns()
+
+    db = ElqRest(sync='users')
+    db.export_users()
 
 
 if __name__ == '__main__':
