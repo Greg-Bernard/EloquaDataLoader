@@ -97,6 +97,16 @@ def sync_campaigns(filename='EloquaDB.db'):
     db.export_campaigns()
 
 
+def sync_users(filename='EloquaDB.db'):
+    """
+    Syncs campaigns to the database
+    :param filename: the name of the file you're dumping the data into
+    """
+
+    db = ElqRest(filename=filename, sync='users')
+    db.export_users()
+
+
 def full_geoip(**kwargs):
     """
     Run geoip on all tables that contain the column IpAddress.
@@ -200,6 +210,9 @@ def main():
     # Calculates the distance from a given point to every major population center in North America
     # Then returns that population center, the distance from it in km, and the country that city is in
     closest_city(filename='EloquaDB.db')
+
+    # Performs a full sync of all users in Eloqua
+    sync_users(filename='EloquaDB.db')
 
     # Performs a full campaign sync, updates the last 'page' of campaigns (default page size is set to 100)
     sync_campaigns(filename='EloquaDB.db')
