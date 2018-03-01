@@ -15,7 +15,7 @@ campaign_col_def = {
             'createdBy': 'INTEGER',
             'depth': 'TEXT',
             'name': 'TEXT',
-            'updatedAt': 'DATETIME',
+            'updatedAt': 'TIMESTAMP',
             'updatedBy': 'INTEGER',
             'actualCost': 'REAL',
             'budgetedCost': 'REAL',
@@ -36,10 +36,24 @@ external_col_def = {
             'id': 'INTEGER PRIMARY KEY',
             'depth': 'TEXT',
             'name': 'TEXT',
-            'activityDate': 'DATETIME',
+            'activityDate': 'TIMESTAMP',
             'activityType': 'TEXT',
             'assetName': 'TEXT',
             'assetType': 'TEXT',
             'campaignId': 'INTEGER',
             'contactId': 'INTEGER'
         }
+
+users_col_def = {'type': 'TEXT',
+                 'id': 'INTEGER PRIMARY KEY',
+                 'createdAt': 'DATETIME',
+                 'createdBy': 'INTEGER',
+                 'depth': 'TEXT',
+                 'description': 'TEXT',
+                 'name': 'TEXT',
+                 'updatedAt': 'TIMESTAMP',
+                 'updatedBy': 'INTEGER',
+                 'company': 'TEXT',
+                 'emailAddress': 'TEXT',
+                 'loginName': 'TEXT'
+                 }
