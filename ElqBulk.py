@@ -70,8 +70,6 @@ class ElqBulk(object):
             exp_type = 'contacts'
         elif self.table == 'accounts':
             exp_type = 'accounts'
-        elif self.table == 'campaignResponses':
-            exp_type = 'campaignResponses'
         else:
             exp_type = 'activities'
 
@@ -81,8 +79,6 @@ class ElqBulk(object):
         if self.table == 'contacts':
             act_type = None
         elif self.table == 'accounts':
-            act_type = None
-        elif self.table == 'campaignResponses':
             act_type = None
         else:
             act_type = self.table
@@ -160,15 +156,6 @@ class ElqBulk(object):
         """
 
         col = ', '.join("'{}' {}".format(key, val) for key, val in self.columns.items())
-
-        if self.table == 'contacts':
-            col = col + ", FOREIGN KEY('SFDC Account ID') REFERENCES accounts('SFDC Account ID')"
-        elif self.table == 'accounts':
-            col = col + ", FOREIGN KEY('SFDC Account ID') REFERENCES contacts('SFDC Account ID')"
-        elif self.table != ('contacts' or 'accounts') and 'ContactId' in self.columns.keys():
-            col = col + ", FOREIGN KEY(ContactId) REFERENCES contacts(ContactId)"
-        elif self.table != ('contacts' or 'accounts') and 'EmailAddress' in self.columns.keys():
-            col = col + ", FOREIGN KEY(EmailAddress) REFERENCES contacts('Email Address')"
 
         self.db.execute('''CREATE TABLE IF NOT EXISTS {}
                             ({})'''.format(self.table, col))
@@ -338,7 +325,7 @@ class ElqBulk(object):
 
             # Initialize database connection, if database is locked, waits 1 minute, then retries
 
-            def insert_data():
+            def insert_data(x=1):
                 """
                 Local function that allows a wait period if database file is busy, then retries
                 """
@@ -347,11 +334,19 @@ class ElqBulk(object):
                         self.table, ",".join("?" * col_count)), sql_data)
                 except AttributeError:
                     print('ERROR: You must create a table before loading to it. Try initiate_table().')
-                except sqlite3.OperationalError:
-                    print("ElqBulk: Another application is currently using the database,"
-                          " waiting 15 seconds then attempting to continue.")
-                    time.sleep(15)
-                    insert_data()
+                except sqlite3.OperationalError as e:
+                    if x == 5:
+                        print("Renaming {t} to {t}_old and creating new table to continue sync.".format(t=self.table))
+                        self.db.execute("""ALTER TABLE {tname} RENAME TO {tname}_old;""".format(tname=self.table,))
+                        n_col = ', '.join("'{}' {}".format(key, val) for key, val in self.columns.items())
+
+                        self.db.execute('''CREATE TABLE IF NOT EXISTS {}
+                                                    ({})'''.format(self.table, n_col))
+                        insert_data()
+                    else:
+                        print("ERROR: {}\n Waiting 15 seconds then trying again.\nTry {} out of 5".format(e, x))
+                        time.sleep(15)
+                        insert_data(x+1)
 
             insert_data()
 
