@@ -126,18 +126,28 @@ class IpLoc:
                 if len(list(d.values())) == col_count:
                     sql_data.append(list(d.values()))
 
-            def insert_data():
-
+            def insert_data(x=1):
+                """
+                Local function that allows a wait period if database file is busy, then retries
+                """
                 try:
-                    self.db.executemany("""INSERT OR REPLACE INTO GeoIP({}) VALUES ({})""".format(
-                        table_col, ", ".join("?" * col_count)), sql_data)
+                    self.db.executemany("""INSERT OR REPLACE INTO {} VALUES ({})""".format(
+                        self.table, ",".join("?" * col_count)), sql_data)
                 except AttributeError:
-                    print("ERROR: You must create columns in the table before loading to it. Try create_columns().")
-                except sqlite3.OperationalError:
-                    print("geoip: Another application is currently using the database,"
-                          " waiting 15 seconds then attempting to continue.")
-                    time.sleep(15)
-                    insert_data()
+                    print('ERROR: You must create a table before loading to it. Try initiate_table().')
+                except sqlite3.OperationalError as e:
+                    if x == 5:
+                        print("Renaming {t} to {t}_old and creating new table to continue sync.".format(t=self.table))
+                        self.db.execute("""ALTER TABLE {tname} RENAME TO {tname}_old;""".format(tname=self.table, ))
+                        n_col = ', '.join("'{}' {}".format(key, val) for key, val in self.columns.items())
+
+                        self.db.execute('''CREATE TABLE IF NOT EXISTS {}
+                                                               ({})'''.format(self.table, n_col))
+                        insert_data()
+                    else:
+                        print("ERROR: {}\n Waiting 15 seconds then trying again.\nTry {} out of 5".format(e, x))
+                        time.sleep(15)
+                        insert_data(x + 1)
 
             insert_data()
 
