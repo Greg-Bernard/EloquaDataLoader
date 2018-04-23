@@ -131,8 +131,8 @@ class IpLoc:
                 Local function that allows a wait period if database file is busy, then retries
                 """
                 try:
-                    self.db.executemany("""INSERT OR REPLACE INTO {} VALUES ({})""".format(
-                        self.table, ",".join("?" * col_count)), sql_data)
+                    self.db.executemany("""INSERT OR REPLACE INTO {} {} VALUES ({})""".format(
+                        self.table, tuple(col), ",".join("?" * col_count)), sql_data)
                 except AttributeError:
                     print('ERROR: You must create a table before loading to it. Try initiate_table().')
                 except sqlite3.OperationalError as e:
@@ -142,7 +142,7 @@ class IpLoc:
                         n_col = ', '.join("'{}' {}".format(key, val) for key, val in self.columns.items())
 
                         self.db.execute('''CREATE TABLE IF NOT EXISTS {}
-                                                               ({})'''.format(self.table, n_col))
+                                                    ({})'''.format(self.table, n_col))
                         insert_data()
                     else:
                         print("ERROR: {}\n Waiting 15 seconds then trying again.\nTry {} out of 5".format(e, x))
