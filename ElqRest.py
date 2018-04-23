@@ -150,7 +150,7 @@ class ElqRest(object):
 
         return activities
 
-    def get_campaigns(self, count=100, p_start=1, p_end=999999):
+    def get_campaigns(self, count=1000, p_start=1, p_end=999999):
         """
         Pulls all campaigns from Eloqua in a defined range.
         :param count: Size of batch to pull per page
@@ -227,16 +227,10 @@ class ElqRest(object):
 
         col = ', '.join("'{}' {}".format(key, val) for key, val in TableNames.campaign_col_def.items())
 
-        try:
-            self.c.execute("""SELECT COUNT(*) FROM {table};""".format(table=table))
-            row_count = self.c.fetchall()[0][0]
-            p_start = row_count // 100
-            new_data = self.get_campaigns(count=100, p_start=p_start)
-        except sqlite3.OperationalError:
-            self.c.execute('''CREATE TABLE IF NOT EXISTS {table} ({columns});'''
-                           .format(table=table, columns=col))
-            new_data = self.get_campaigns(count=100)
+        self.c.execute('''CREATE TABLE IF NOT EXISTS {table} ({columns});'''
+                       .format(table=table, columns=col))
 
+        new_data = self.get_campaigns(count=1000)
         sql_data = []
         date_columns = [k for k, v in TableNames.campaign_col_def.items() if v.find('DATETIME') >= 0]
 
@@ -275,6 +269,48 @@ class ElqRest(object):
 
         self.insert_data(table=table, col_count=col_count, sql_data=sql_data)
 
+    def export_users(self, table='users'):
+        """
+        Populates users table in the database.
+        :param table: name of the table to create, or search in the database
+        """
+
+        col = ', '.join("'{}' {}".format(key, val) for key, val in TableNames.users_col_def.items())
+
+        self.c.execute('''CREATE TABLE IF NOT EXISTS {table} ({columns});'''
+                       .format(table=table, columns=col))
+
+        new_data = self.get_users(count=1000)
+        sql_data = []
+        date_columns = [k for k, v in TableNames.users_col_def.items()
+                        if (v.find('DATETIME') >= 0) or (v.find('TIMESTAMP') >= 0)]
+
+        for d in new_data:
+            dic = {}
+            for c in date_columns:
+                # Convert unix timestamps to datetime
+                try:
+                    d[c] = datetime.datetime.fromtimestamp(
+                        int(d[c])).strftime('%Y-%m-%d %H:%M:%S')
+                except KeyError:
+                    d[c] = ""
+                    continue
+
+            # Remove extra columns from some users
+            if len(d) != 12:
+                for k in TableNames.users_col_def.keys():
+                    dic[k] = d[k]
+                d = dic
+
+            sql_data.append(list(d.values()))
+
+        col_count = len(sql_data[0])
+        # for l in sql_data:
+        #     print(l)
+        # print(col_count)
+
+        self.insert_data(table=table, col_count=col_count, sql_data=sql_data)
+
     def export_external(self, table='External_Activity', start=None, end=99999):
         """
         Populates external activity table in the database.
@@ -284,7 +320,7 @@ class ElqRest(object):
         """
 
         col = ', '.join("'{}' {}".format(key, val) for key, val in TableNames.external_col_def.items())
-        col = col + ", FOREIGN KEY(ContactId) REFERENCES contacts(ContactId)"
+        # col = col + ", FOREIGN KEY(ContactId) REFERENCES contacts(ContactId)"
 
         try:
             self.c.execute("""SELECT {id} FROM {table} ORDER BY {id} DESC LIMIT 1;"""
@@ -327,48 +363,6 @@ class ElqRest(object):
                 int(d['activityDate'])).strftime('%Y-%m-%d %H:%M:%S')
             d['id'] = int(d['id'])
             sql_data.append(list(d.values()))
-
-        self.insert_data(table=table, col_count=col_count, sql_data=sql_data)
-
-    def export_users(self, table='users'):
-        """
-        Populates users table in the database.
-        :param table: name of the table to create, or search in the database
-        """
-
-        col = ', '.join("'{}' {}".format(key, val) for key, val in TableNames.users_col_def.items())
-
-        self.c.execute('''CREATE TABLE IF NOT EXISTS {table} ({columns});'''
-                       .format(table=table, columns=col))
-
-        new_data = self.get_users(count=100)
-        sql_data = []
-        date_columns = [k for k, v in TableNames.users_col_def.items()
-                        if (v.find('DATETIME') >= 0) or (v.find('TIMESTAMP') >= 0)]
-
-        for d in new_data:
-            dic = {}
-            for c in date_columns:
-                # Convert unix timestamps to datetime
-                try:
-                    d[c] = datetime.datetime.fromtimestamp(
-                        int(d[c])).strftime('%Y-%m-%d %H:%M:%S')
-                except KeyError:
-                    d[c] = ""
-                    continue
-
-            # Remove extra columns from some users
-            if len(d) != 12:
-                for k in TableNames.users_col_def.keys():
-                    dic[k] = d[k]
-                d = dic
-
-            sql_data.append(list(d.values()))
-
-        col_count = len(sql_data[0])
-        # for l in sql_data:
-        #     print(l)
-        # print(col_count)
 
         self.insert_data(table=table, col_count=col_count, sql_data=sql_data)
 
