@@ -20,7 +20,6 @@ class IpLoc:
         self.db = sqlite3.connect(self.filename, detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
         self.db.row_factory = sqlite3.Row
         c = self.db.cursor()
-        self.columns = self._create_db_columns_def_()
 
         self.reader = maxminddb.open_database(self.database)
 
@@ -33,6 +32,7 @@ class IpLoc:
 
         self.geo_data = self.ip_data()
         self.new_data = self.process_step()
+        self.columns = self._create_db_columns_def_()
 
     def ip_data(self):
         """
@@ -87,12 +87,12 @@ class IpLoc:
     def _create_db_columns_def_(self):
         """
         Creates column definitions to create new table
-        :return: 
+        :return:
         """
-        
+
         columns = {}
         first_dict = self.new_data[0]
-        
+
         for key, value in first_dict.items():
             columns.update({key: None})
 
@@ -105,17 +105,13 @@ class IpLoc:
                 columns[key] = "REAL"
             else:
                 columns[key] = "TEXT"
-                
+
         return columns
-    
+
     def create_table(self):
         """
         Creates a new table in the database to sync IP geolocation data to.
         """
-        
-        
-
-        
 
         col = ', '.join("'{}' {}".format(key, val) for key, val in self.columns.items())
 
@@ -123,8 +119,6 @@ class IpLoc:
 
         self.db.execute('''CREATE TABLE IF NOT EXISTS GeoIP
                         ({})'''.format(col))
-
-        return columns
 
     def save_location_data(self):
         """
@@ -155,7 +149,7 @@ class IpLoc:
                     if x == 5:
                         print("Renaming {t} to {t}_old and creating new table to continue sync.".format(t=self.tablename))
                         self.db.execute("""ALTER TABLE {tname} RENAME TO {tname}_old;""".format(tname=self.tablename, ))
-                        
+
                         n_col = ', '.join("'{}' {}".format(key, val) for key, val in self.columns.items())
 
                         self.db.execute('''CREATE TABLE IF NOT EXISTS {}
