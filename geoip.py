@@ -20,6 +20,7 @@ class IpLoc:
         self.db = sqlite3.connect(self.filename, detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
         self.db.row_factory = sqlite3.Row
         c = self.db.cursor()
+        self.columns = self._create_db_columns_def_()
 
         self.reader = maxminddb.open_database(self.database)
 
@@ -83,13 +84,15 @@ class IpLoc:
         print("-"*50)
         return new_data
 
-    def create_table(self):
+    def _create_db_columns_def_(self):
         """
-        Creates a new table in the database to sync IP geolocation data to.
+        Creates column definitions to create new table
+        :return: 
         """
+        
         columns = {}
         first_dict = self.new_data[0]
-
+        
         for key, value in first_dict.items():
             columns.update({key: None})
 
@@ -102,13 +105,26 @@ class IpLoc:
                 columns[key] = "REAL"
             else:
                 columns[key] = "TEXT"
+                
+        return columns
+    
+    def create_table(self):
+        """
+        Creates a new table in the database to sync IP geolocation data to.
+        """
+        
+        
 
-        col = ', '.join("'{}' {}".format(key, val) for key, val in columns.items())
+        
+
+        col = ', '.join("'{}' {}".format(key, val) for key, val in self.columns.items())
 
         print("Creating GeoIP a table if one doesn't exist yet.")
 
         self.db.execute('''CREATE TABLE IF NOT EXISTS GeoIP
                         ({})'''.format(col))
+
+        return columns
 
     def save_location_data(self):
         """
@@ -132,17 +148,18 @@ class IpLoc:
                 """
                 try:
                     self.db.executemany("""INSERT OR REPLACE INTO {} {} VALUES ({})""".format(
-                        self.table, tuple(col), ",".join("?" * col_count)), sql_data)
+                        self.tablename, tuple(col), ",".join("?" * col_count)), sql_data)
                 except AttributeError:
                     print('ERROR: You must create a table before loading to it. Try initiate_table().')
                 except sqlite3.OperationalError as e:
                     if x == 5:
-                        print("Renaming {t} to {t}_old and creating new table to continue sync.".format(t=self.table))
-                        self.db.execute("""ALTER TABLE {tname} RENAME TO {tname}_old;""".format(tname=self.table, ))
+                        print("Renaming {t} to {t}_old and creating new table to continue sync.".format(t=self.tablename))
+                        self.db.execute("""ALTER TABLE {tname} RENAME TO {tname}_old;""".format(tname=self.tablename, ))
+                        
                         n_col = ', '.join("'{}' {}".format(key, val) for key, val in self.columns.items())
 
                         self.db.execute('''CREATE TABLE IF NOT EXISTS {}
-                                                    ({})'''.format(self.table, n_col))
+                                                    ({})'''.format(self.tablename, n_col))
                         insert_data()
                     else:
                         print("ERROR: {}\n Waiting 15 seconds then trying again.\nTry {} out of 5".format(e, x))
