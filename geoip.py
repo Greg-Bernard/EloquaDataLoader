@@ -141,19 +141,19 @@ class IpLoc:
                 Local function that allows a wait period if database file is busy, then retries
                 """
                 try:
-                    self.db.executemany("""INSERT OR REPLACE INTO {} {} VALUES ({})""".format(
-                        self.tablename, tuple(col), ",".join("?" * col_count)), sql_data)
+                    self.db.executemany("""INSERT OR REPLACE INTO GeoIP {} VALUES ({})""".format(
+                         tuple(col), ",".join("?" * col_count)), sql_data)
                 except AttributeError:
                     print('ERROR: You must create a table before loading to it. Try initiate_table().')
                 except sqlite3.OperationalError as e:
                     if x == 5:
-                        print("Renaming {t} to {t}_old and creating new table to continue sync.".format(t=self.tablename))
-                        self.db.execute("""ALTER TABLE {tname} RENAME TO {tname}_old;""".format(tname=self.tablename, ))
+                        print("Renaming GeoIP to GeoIP_old and creating new table to continue sync.")
+                        self.db.execute("""ALTER TABLE GeoIP RENAME TO GeoIP_old;""")
 
                         n_col = ', '.join("'{}' {}".format(key, val) for key, val in self.columns.items())
 
-                        self.db.execute('''CREATE TABLE IF NOT EXISTS {}
-                                                    ({})'''.format(self.tablename, n_col))
+                        self.db.execute('''CREATE TABLE IF NOT EXISTS GeoIP
+                                                    ({})'''.format(n_col))
                         insert_data()
                     else:
                         print("ERROR: {}\n Waiting 15 seconds then trying again.\nTry {} out of 5".format(e, x))
