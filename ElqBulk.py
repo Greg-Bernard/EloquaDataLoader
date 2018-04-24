@@ -334,9 +334,7 @@ class ElqBulk(object):
                 """
                 Local function that allows a wait period if database file is busy, then retries
                 """
-                try:
-                    print("""INSERT OR REPLACE INTO {} {} VALUES ({})""".format(
-                        self.table, tuple(col), ",".join("?" * col_count)))
+                try:                  
                     self.db.executemany("""INSERT OR REPLACE INTO {} {} VALUES ({})""".format(
                         self.table, tuple(col), ",".join("?" * col_count)), sql_data)
                 except AttributeError:
